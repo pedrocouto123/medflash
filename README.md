@@ -156,30 +156,28 @@ O que cada evento faz:
 
 ## Etapa 8 — Importar seus decks do Anki
 
-1. Instale o **Node.js** versão LTS: <https://nodejs.org>.
-2. No Anki, para cada deck: **Arquivo → Exportar** → formato **Pacote de baralho Anki (.apkg)** → marque **Incluir mídia** e **Suporte a versões antigas do Anki** → Exportar.
-   (Sem a opção de versões antigas, o importador avisa e pede para exportar de novo.)
-3. Copie os `.apkg` para a pasta `importador`.
-4. Na pasta `importador`, copie `.env.example` para `.env` e preencha a URL e a **service_role** key.
-5. Abra o terminal nessa pasta (no Windows: clique na barra de endereço da pasta, digite `cmd` e Enter) e rode:
-   ```
-   npm install
-   node importar-apkg.mjs "Clinica Medica.apkg" --previa
-   ```
-   Abra `previa/previa.html` no navegador e confira se os cards e imagens estão corretos.
-6. Se estiver tudo certo, envie de verdade:
-   ```
-   node importar-apkg.mjs "Clinica Medica.apkg"
-   ```
+**Jeito automático (recomendado):** coloque os `.apkg` no repositório, dentro de `importador/decks/<Área>/`
+(ex.: `importador/decks/Cirurgia/Trauma.apkg`) e faça push na `main`. A automação **Importar decks** do GitHub
+converte e publica sozinha, com as imagens. O nome da pasta vira a área no app.
 
-Opções úteis:
-- Vários arquivos de uma vez: `node importar-apkg.mjs deck1.apkg deck2.apkg`
-- Agrupar numa área: `--prefixo "Pediatria"` coloca os decks dentro de "Pediatria"
-- Importar sem mostrar aos alunos: `--oculto` (publique depois mudando `publicado` para `true` na tabela `decks`)
+- Só os arquivos novos ou alterados no push são importados.
+- Para corrigir um deck: edite no Anki, exporte de novo com o mesmo nome e substitua o arquivo. Os cards são
+  atualizados sem duplicar e o progresso dos alunos é mantido.
+- Para reimportar tudo: GitHub → Actions → Importar decks → Run workflow.
+- Segurança: não há chave guardada no GitHub. A função `importar` do Supabase só aceita o token de identidade
+  que o GitHub emite para este workflow, deste repositório, na `main`.
 
-**Como os decks aparecem:** a hierarquia do Anki vira a organização do app. Um deck chamado `Clínica Médica::Cardiologia` aparece como "Cardiologia" dentro da área "Clínica Médica". Vale organizar no Anki pelas cinco grandes áreas antes de exportar.
+Ao exportar do Anki: **Arquivo → Exportar → Pacote de baralho Anki (.apkg)**, marque **Incluir mídia** e
+**Suporte a versões antigas do Anki**.
 
-**Corrigir um card:** edite no Anki, exporte e importe de novo. Os cards são atualizados sem duplicar e o progresso dos alunos é mantido.
+**Jeito manual (no seu computador):** instale o Node.js, copie `importador/.env.example` para `.env` com a URL e a
+**service_role** key, e rode na pasta `importador`:
+```
+npm install
+node importar-apkg.mjs "Clinica Medica.apkg" --previa      # confere antes em previa/previa.html
+node importar-apkg.mjs "Clinica Medica.apkg" --prefixo "Clínica Médica"
+```
+Opção `--oculto` importa sem mostrar aos alunos (publique depois mudando `publicado` para `true` na tabela `decks`).
 
 ## Etapa 9 — Teste completo antes de vender
 
