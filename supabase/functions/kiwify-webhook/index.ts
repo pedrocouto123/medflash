@@ -5,7 +5,8 @@
 // Segredos necessários (definidos automaticamente pelo GitHub Actions,
 // ou manualmente em Supabase > Edge Functions > Secrets):
 //   KIWIFY_TOKEN   -> o "token" exibido ao criar o webhook na Kiwify
-//   APP_URL        -> endereço do seu app, ex.: https://medflash.vercel.app
+//   APP_URL        -> (opcional) endereço do app, ex.: https://medflash.vercel.app
+//                     Se vazio, usa public.config chave 'app_url'.
 // (SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY já existem automaticamente.)
 //
 // IMPORTANTE: a verificação de JWT fica desativada (supabase/config.toml),
@@ -74,15 +75,26 @@ function diasDoPlano(freq: string | undefined): number {
   return 32; // mensal (padrão)
 }
 
+// Endereço do app: segredo APP_URL ou, se vazio, public.config (chave 'app_url')
+let _urlApp: string | null = null;
+async function urlDoApp(): Promise<string> {
+  if (APP_URL) return APP_URL;
+  if (_urlApp !== null) return _urlApp;
+  const { data } = await supabase.from("config").select("valor").eq("chave", "app_url").maybeSingle();
+  _urlApp = (data?.valor ?? "").replace(/\/$/, "");
+  return _urlApp;
+}
+
 // Cria a conta do aluno (se ainda não existir) e envia o e-mail de convite
 async function garantirUsuario(email: string, nome: string): Promise<string | null> {
   const { data: existente } = await supabase.from("assinaturas")
     .select("user_id").eq("email", email).maybeSingle();
   if (existente?.user_id) return existente.user_id;
 
+  const app = await urlDoApp();
   const { data: convite, error } = await supabase.auth.admin.inviteUserByEmail(email, {
     data: { nome },
-    redirectTo: APP_URL ? `${APP_URL}/?definir=1` : undefined,
+    redirectTo: app ? `${app}/?definir=1` : undefined,
   });
   if (!error && convite?.user) return convite.user.id;
 
