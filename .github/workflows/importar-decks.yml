@@ -1,0 +1,77 @@
+# Importa decks do Anki para a plataforma.
+#
+# Como usar: coloque os .apkg em importador/decks/<Área>/  (ex.: importador/decks/Cirurgia/Trauma.apkg)
+# e faça push na main. O nome da pasta vira a área no app ("Cirurgia::Trauma").
+# Só os arquivos novos ou alterados no push são importados. Para reimportar tudo:
+# Actions > Importar decks > Run workflow.
+#
+# Segurança: não usa nenhuma chave. O GitHub emite um token de identidade (OIDC) para este
+# workflow e a função "importar" do Supabase só aceita esse token, deste repositório, na main.
+name: Importar decks
+
+on:
+  push:
+    branches: [main]
+    paths: ["importador/decks/**.apkg"]
+  workflow_dispatch:
+    inputs:
+      tudo:
+        description: "Reimportar todos os decks"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: importar-decks
+  cancel-in-progress: false
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    env:
+      IMPORTAR_URL: https://kznlpggiitskmyawmcba.supabase.co/functions/v1/importar
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar o importador
+        working-directory: importador
+        run: npm ci --no-audit --no-fund
+
+      - name: Escolher os decks
+        id: lista
+        env:
+          ANTES: ${{ github.event.before }}
+          TUDO: ${{ github.event_name == 'workflow_dispatch' && inputs.tudo }}
+        run: |
+          if [ "$TUDO" = "true" ] || [ -z "$ANTES" ] || [ "$ANTES" = "0000000000000000000000000000000000000000" ]; then
+            git ls-files 'importador/decks/**.apkg' > lista.txt
+          else
+            git diff --name-only --diff-filter=AM "$ANTES" "$GITHUB_SHA" -- 'importador/decks/**.apkg' > lista.txt
+          fi
+          echo "Decks para importar:"; cat lista.txt
+          echo "total=$(wc -l < lista.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Importar
+        if: steps.lista.outputs.total != '0'
+        run: |
+          falhas=0
+          while IFS= read -r arq; do
+            [ -z "$arq" ] && continue
+            area=$(basename "$(dirname "$arq")")
+            echo "::group::$area / $(basename "$arq")"
+            if ! (cd importador && node importar-apkg.mjs "../$arq" --prefixo "$area" --via-funcao); then
+              echo "::error::Falhou: $arq"; falhas=$((falhas+1))
+            fi
+            echo "::endgroup::"
+          done < lista.txt
+          echo "Importação terminada com $falhas falha(s)."
+          [ "$falhas" -eq 0 ]
