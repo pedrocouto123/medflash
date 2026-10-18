@@ -202,16 +202,21 @@ function destinoFuncao() {
     if (token && Date.now() < validoAte) return token;
     const r = await fetch(`${pedirUrl}&audience=pulse-medcards-importar`, { headers: { Authorization: `Bearer ${pedirToken}` } });
     if (!r.ok) throw new Error(`Não consegui o token do GitHub (${r.status}).`);
-    token = (await r.json()).value; validoAte = Date.now() + 4 * 60 * 1000;
+    token = (await r.json()).value; validoAte = Date.now() + 2 * 60 * 1000;
     return token;
   }
-  async function chamar(corpo, tentativas = 3) {
+  async function chamar(corpo, tentativas = 4) {
     for (let t = 1; ; t++) {
-      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await obterToken()}` }, body: JSON.stringify(corpo) });
-      const j = await r.json().catch(() => ({}));
-      if (r.ok) return j;
-      if (t >= tentativas || r.status < 500) throw new Error(`Função importar respondeu ${r.status}: ${j.erro ?? "erro"}`);
-      await new Promise((ok) => setTimeout(ok, 1500 * t));
+      let status = 0, j = {};
+      try {
+        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await obterToken()}` }, body: JSON.stringify(corpo) });
+        status = r.status; j = await r.json().catch(() => ({}));
+        if (r.ok) return j;
+        if (status === 401) token = null; // permissão venceu: pede outra
+      } catch (e) { j = { erro: e.message }; }
+      const repetir = status === 0 || status === 401 || status >= 500;
+      if (t >= tentativas || !repetir) throw new Error(`Função importar respondeu ${status || "sem resposta"}: ${j.erro ?? "erro"}`);
+      await new Promise((ok) => setTimeout(ok, 2000 * t));
     }
   }
   return {
