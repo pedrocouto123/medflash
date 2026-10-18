@@ -4,256 +4,486 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pulse Medcards</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<meta name="theme-color" content="#1B6B58">
+<meta name="theme-color" content="#FBF8F9">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
+<script>
+  // Aplica o tema salvo antes de desenhar, para não piscar
+  try { const t = localStorage.getItem("pm_tema"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}
+</script>
 <style>
-/* Layout: coluna única centrada; a tela de estudo é um "prontuário" com o card no centro e as 4 respostas na base. */
+/* =====================================================================
+   Pulse Medcards — visual
+   Papel de eletrocardiograma no painel "Hoje"; o resto fica quieto.
+   Cores de estado seguem o Anki: Novos azul, Aprendendo laranja, Revisar verde.
+   ===================================================================== */
 :root {
-  --papel: #EEF2EE;
+  --fundo: #FBF8F9;
   --superficie: #FFFFFF;
-  --superficie-2: #F6F8F5;
-  --tinta: #17222B;
-  --tinta-2: #4E5B66;
-  --linha: #D5DDD6;
-  --acento: #1B6B58;
-  --acento-tinta: #FFFFFF;
-  --acento-suave: #DDECE5;
-  --novo: #2C5E9E;
-  --vencido: #B7412E;
-  --aprendendo: #B07A16;
-  --errei: #B7412E;
-  --dificil: #9A6A10;
-  --bom: #1B6B58;
-  --facil: #2C5E9E;
-  --sombra: 0 1px 2px rgba(23,34,43,.06), 0 8px 24px rgba(23,34,43,.06);
-  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --f-texto: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
-  --f-dado: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
-  --raio: 10px;
+  --superficie-2: #F6F0F2;
+  --tinta: #241C26;
+  --tinta-2: #6E6371;
+  --tinta-3: #9A8F9D;
+  --linha: #ECE2E6;
+  --pulso: #C2255C;
+  --pulso-forte: #A01A4A;
+  --pulso-suave: #FCEBF1;
+  --grade-ecg: rgba(194, 37, 92, .10);
+  --grade-ecg-forte: rgba(194, 37, 92, .20);
+  --novo: #2563C9;
+  --aprendendo: #D9480F;
+  --revisar: #3B7D23;
+  --jovem: #0FA3A3;
+  --maduro: #3B7D23;
+  --novamente: #C92A2A;
+  --sombra: 0 1px 2px rgba(36, 28, 38, .05), 0 6px 18px rgba(36, 28, 38, .05);
+  --f: "Onest", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r-grande: 20px;
+  --r-medio: 14px;
+  --r-peq: 10px;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --papel: #0E1613; --superficie: #15201C; --superficie-2: #1A2722; --tinta: #E3ECE7; --tinta-2: #9DB0A7;
-    --linha: #2A3934; --acento: #5CC3A4; --acento-tinta: #0E1613; --acento-suave: #1C3129;
-    --novo: #7EA9E3; --vencido: #E4806B; --aprendendo: #DDAA4C;
-    --errei: #E4806B; --dificil: #DDAA4C; --bom: #5CC3A4; --facil: #7EA9E3;
-    --sombra: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    --fundo: #141016; --superficie: #1D1820; --superficie-2: #251F29; --tinta: #F3EEF4; --tinta-2: #ABA0AF; --tinta-3: #7D7281;
+    --linha: #352D39; --pulso: #F0628F; --pulso-forte: #F58DAE; --pulso-suave: #2C1822;
+    --grade-ecg: rgba(240, 98, 143, .10); --grade-ecg-forte: rgba(240, 98, 143, .20);
+    --novo: #6E9BEE; --aprendendo: #EE7A45; --revisar: #9DB63E; --jovem: #1A9E9E; --maduro: #8A9E2B; --novamente: #F07373;
+    --sombra: 0 1px 2px rgba(0,0,0,.35), 0 8px 22px rgba(0,0,0,.25);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --papel: #0E1613; --superficie: #15201C; --superficie-2: #1A2722; --tinta: #E3ECE7; --tinta-2: #9DB0A7;
-  --linha: #2A3934; --acento: #5CC3A4; --acento-tinta: #0E1613; --acento-suave: #1C3129;
-  --novo: #7EA9E3; --vencido: #E4806B; --aprendendo: #DDAA4C;
-  --errei: #E4806B; --dificil: #DDAA4C; --bom: #5CC3A4; --facil: #7EA9E3;
-  --sombra: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  --fundo: #141016; --superficie: #1D1820; --superficie-2: #251F29; --tinta: #F3EEF4; --tinta-2: #ABA0AF; --tinta-3: #7D7281;
+  --linha: #352D39; --pulso: #F0628F; --pulso-forte: #F58DAE; --pulso-suave: #2C1822;
+  --grade-ecg: rgba(240, 98, 143, .10); --grade-ecg-forte: rgba(240, 98, 143, .20);
+  --novo: #6E9BEE; --aprendendo: #EE7A45; --revisar: #9DB63E; --jovem: #1A9E9E; --maduro: #8A9E2B; --novamente: #F07373;
+  --sombra: 0 1px 2px rgba(0,0,0,.35), 0 8px 22px rgba(0,0,0,.25);
   color-scheme: dark;
 }
+
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
 body {
-  margin: 0; background: var(--papel); color: var(--tinta);
-  font: 16px/1.55 var(--f-texto);
-  -webkit-font-smoothing: antialiased;
+  margin: 0; background: var(--fundo); color: var(--tinta);
+  font: 16px/1.5 var(--f); font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
 }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; color: inherit; }
-a { color: var(--acento); }
-:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 4px; }
-h1, h2, h3 { font-family: var(--f-display); line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+button { cursor: pointer; }
+a { color: var(--pulso); }
+:focus-visible { outline: 2px solid var(--pulso); outline-offset: 2px; border-radius: 6px; }
+h1, h2, h3 { margin: 0; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+p { margin: 0; }
+.ico { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ico-p { width: 18px; height: 18px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- moldura ---------- */
 .aviso-demo {
-  background: var(--acento-suave); color: var(--tinta); font-size: 14px; text-align: center;
-  padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--pulso-suave); color: var(--tinta); font-size: 13px; text-align: center;
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
 }
-.topo {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
-  background: var(--papel); border-bottom: 1px solid var(--linha);
+.miolo {
+  max-width: 1040px; margin: 0 auto;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
 }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--papel); }
-.topo-in, .pagina {
-  max-width: 980px; margin: 0 auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+.topo { padding-top: max(14px, env(safe-area-inset-top, 0px)); }
+.topo .miolo { display: flex; align-items: center; gap: 12px; min-height: 64px; }
+.marca { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 21px; letter-spacing: -0.03em; background: none; border: 0; padding: 0; }
+.marca .selo-marca { width: 34px; height: 34px; border-radius: 10px; background: var(--pulso); color: #fff; display: grid; place-items: center; }
+.marca .selo-marca .ico { width: 22px; height: 22px; stroke-width: 2.2; }
+.topo-acoes { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn-ico {
+  width: 44px; height: 44px; border-radius: var(--r-medio); display: grid; place-items: center;
+  background: var(--superficie); border: 1px solid var(--linha); color: var(--tinta); padding: 0;
 }
-.topo-in { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
-.marca { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
-.marca svg { flex: none; }
-.nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
-.nav button {
-  border: 0; background: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: var(--tinta-2); font-weight: 700; font-size: 15px;
+.btn-ico:hover { border-color: var(--tinta-3); }
+.btn-ico[aria-pressed="true"] { color: var(--pulso); border-color: color-mix(in srgb, var(--pulso) 45%, var(--linha)); background: var(--pulso-suave); }
+.btn-ico[aria-pressed="true"] .ico { fill: currentColor; }
+.nav-alto { display: none; gap: 4px; margin-left: 18px; }
+.nav-alto button { border: 0; background: none; padding: 9px 14px; border-radius: 999px; font-weight: 600; color: var(--tinta-2); }
+.nav-alto button[aria-current="page"] { background: var(--superficie); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--linha); }
+main.miolo { padding-top: 8px; padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+
+.nav-baixo {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: color-mix(in srgb, var(--superficie) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--linha);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: repeat(4, 1fr);
 }
-.nav button[aria-current="page"] { background: var(--acento-suave); color: var(--tinta); }
-.nav button:hover { color: var(--tinta); }
-.pagina { padding-block: 28px 64px; }
+.nav-baixo button {
+  border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 4px;
+  font-size: 12px; font-weight: 600; color: var(--tinta-3);
+}
+.nav-baixo button[aria-current="page"] { color: var(--pulso); }
+@media (min-width: 900px) {
+  .nav-alto { display: flex; }
+  .nav-baixo { display: none; }
+  main.miolo { padding-bottom: 64px; }
+}
 
 /* ---------- elementos comuns ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  border: 1px solid var(--linha); background: var(--superficie); padding: 10px 18px; border-radius: 8px;
-  font-weight: 700; cursor: pointer; text-decoration: none; color: var(--tinta);
+  border: 1px solid var(--linha); background: var(--superficie); padding: 11px 18px; border-radius: var(--r-medio);
+  font-weight: 700; text-decoration: none; color: var(--tinta); min-height: 44px;
 }
-.btn:hover { border-color: var(--tinta-2); }
-.btn-primario { background: var(--acento); border-color: var(--acento); color: var(--acento-tinta); }
-.btn-primario:hover { filter: brightness(1.08); border-color: var(--acento); }
-.btn:disabled { opacity: .55; cursor: default; }
-.btn-texto { border: 0; background: none; color: var(--acento); font-weight: 700; cursor: pointer; padding: 4px 0; }
-.rotulo { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-2); }
-.num { font-family: var(--f-dado); font-variant-numeric: tabular-nums; }
+.btn:hover { border-color: var(--tinta-3); }
+.btn-primario { background: var(--pulso); border-color: var(--pulso); color: #fff; }
+:root[data-theme="dark"] .btn-primario { color: #1A0E14; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn-primario { color: #1A0E14; } }
+.btn-primario:hover { background: var(--pulso-forte); border-color: var(--pulso-forte); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-largo { width: 100%; }
+.btn-texto { border: 0; background: none; color: var(--pulso); font-weight: 700; padding: 6px 0; }
+.caixa { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--r-grande); }
 .campo { display: grid; gap: 6px; }
-.campo label { font-weight: 700; font-size: 14px; }
+.campo label { font-weight: 600; font-size: 14px; }
 .campo input, .campo select {
-  border: 1px solid var(--linha); background: var(--superficie); border-radius: 8px; padding: 11px 12px; width: 100%;
+  border: 1px solid var(--linha); background: var(--superficie); border-radius: var(--r-peq); padding: 12px 14px; width: 100%; min-height: 46px;
 }
-.campo input:focus { outline: 2px solid var(--acento); outline-offset: 0; border-color: var(--acento); }
-.msg { padding: 10px 12px; border-radius: 8px; font-size: 14px; }
-.msg-erro { background: color-mix(in srgb, var(--errei) 14%, var(--superficie)); color: var(--tinta); border: 1px solid color-mix(in srgb, var(--errei) 40%, transparent); }
-.msg-ok { background: var(--acento-suave); border: 1px solid color-mix(in srgb, var(--acento) 35%, transparent); }
-.painel { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio); }
+.campo input:focus, .campo select:focus { outline: 2px solid var(--pulso); outline-offset: 0; border-color: var(--pulso); }
+.msg { padding: 11px 14px; border-radius: var(--r-peq); font-size: 14px; }
+.msg-erro { background: color-mix(in srgb, var(--novamente) 12%, var(--superficie)); border: 1px solid color-mix(in srgb, var(--novamente) 35%, transparent); }
+.msg-ok { background: var(--pulso-suave); border: 1px solid color-mix(in srgb, var(--pulso) 30%, transparent); }
 .vazio { color: var(--tinta-2); text-align: center; padding: 40px 16px; }
+.sec { margin-top: 30px; }
+.sec-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.sec-cab h2 { font-size: 22px; font-weight: 700; }
+.sec-cab .contador { color: var(--tinta-3); font-size: 15px; }
+.c-novo { color: var(--novo); } .c-apr { color: var(--aprendendo); } .c-rev { color: var(--revisar); }
+.zero { color: var(--tinta-3) !important; opacity: .55; }
 
 /* ---------- login ---------- */
-.entrada { min-height: calc(100vh - 120px); display: grid; place-items: center; padding-block: 32px; }
+.entrada { min-height: calc(100vh - 40px); display: grid; place-items: center; padding: 32px 0; }
 .entrada-caixa { width: 100%; max-width: 420px; display: grid; gap: 22px; }
-.entrada-caixa .painel { padding: 28px; display: grid; gap: 16px; box-shadow: var(--sombra); }
-.entrada h1 { font-size: clamp(30px, 6vw, 40px); font-weight: 800; }
-.entrada p { margin: 0; color: var(--tinta-2); }
-.entrada .areas { display: flex; flex-wrap: wrap; gap: 6px; }
-.entrada .areas span { font-size: 13px; border: 1px solid var(--linha); border-radius: 999px; padding: 3px 10px; color: var(--tinta-2); background: var(--superficie); }
+.entrada-caixa > .caixa { padding: 24px; display: grid; gap: 16px; box-shadow: var(--sombra); }
+.entrada h1 { font-size: clamp(32px, 7vw, 42px); font-weight: 800; }
+.entrada .sub { color: var(--tinta-2); margin-top: 6px; }
+.chips-estaticos { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips-estaticos span { font-size: 13px; border: 1px solid var(--linha); border-radius: 999px; padding: 4px 11px; color: var(--tinta-2); background: var(--superficie); }
 
-/* ---------- decks ---------- */
-.cab { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
-.cab h1 { font-size: clamp(26px, 5vw, 34px); font-weight: 800; }
-.resumo-dia { display: flex; gap: 22px; flex-wrap: wrap; }
-.resumo-dia div { display: grid; }
-.resumo-dia b { font-family: var(--f-dado); font-size: 24px; font-variant-numeric: tabular-nums; }
-.busca { margin-bottom: 18px; }
-.area { margin-bottom: 18px; overflow: hidden; }
-.area-cab {
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--linha);
-  background: var(--superficie-2); flex-wrap: wrap;
+/* ---------- início ---------- */
+.saudacao { margin-top: 18px; }
+.saudacao h1 { font-size: clamp(34px, 8vw, 46px); font-weight: 800; }
+.saudacao p { color: var(--tinta-2); font-size: 18px; margin-top: 6px; }
+
+.hoje {
+  margin-top: 22px; border-radius: var(--r-grande); overflow: hidden; position: relative;
+  border: 1px solid color-mix(in srgb, var(--pulso) 22%, var(--linha));
+  background-color: var(--pulso-suave);
+  background-image:
+    linear-gradient(var(--grade-ecg-forte) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grade-ecg-forte) 1px, transparent 1px),
+    linear-gradient(var(--grade-ecg) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grade-ecg) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+  background-position: -1px -1px;
 }
-.area-cab h2 { font-size: 19px; font-weight: 700; flex: 1; min-width: 0; }
-.deck {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px;
-  padding: 12px 16px; border-top: 1px solid var(--linha); cursor: pointer; width: 100%;
-  background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left;
+.hoje-in { position: relative; padding: 20px 20px 18px; display: grid; gap: 14px; }
+.hoje-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.hoje-topo strong { font-size: 15px; font-weight: 700; color: var(--pulso-forte); display: flex; align-items: center; gap: 6px; }
+.hoje-topo span { font-size: 13px; color: var(--tinta-2); }
+.contagens-grandes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.contagens-grandes div { display: grid; gap: 0; }
+.contagens-grandes b { font-size: clamp(34px, 9vw, 44px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.contagens-grandes span { font-size: 14px; font-weight: 600; color: var(--tinta-2); margin-top: 6px; }
+.tracado { display: block; width: 100%; height: 70px; margin: -4px 0 -2px; }
+.tracado path { fill: none; stroke: var(--pulso); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.tracado .dia-vazio { stroke: color-mix(in srgb, var(--pulso) 45%, transparent); }
+.tracado text { font-size: 10px; fill: var(--tinta-2); font-family: var(--f); }
+@media (prefers-reduced-motion: no-preference) {
+  .tracado path.anima { stroke-dasharray: var(--comp); stroke-dashoffset: var(--comp); animation: desenhar 2.4s ease-out .15s forwards; }
+  @keyframes desenhar { to { stroke-dashoffset: 0; } }
 }
-.deck:first-of-type { border-top: 0; }
-.deck:hover { background: var(--superficie-2); }
-.deck-nome { min-width: 0; }
-.deck-nome strong { display: block; font-weight: 700; }
-.deck-nome small { color: var(--tinta-2); font-size: 13px; }
-.contagens { display: flex; gap: 12px; font-family: var(--f-dado); font-size: 14px; font-variant-numeric: tabular-nums; }
-.c-novo { color: var(--novo); } .c-venc { color: var(--vencido); } .c-apr { color: var(--aprendendo); }
-.contagens .zero { color: var(--linha); }
-.barra { width: 70px; height: 6px; background: var(--linha); border-radius: 99px; overflow: hidden; }
-.barra i { display: block; height: 100%; background: var(--acento); }
-@media (max-width: 560px) {
-  .deck { grid-template-columns: minmax(0, 1fr) auto; }
-  .deck .barra { display: none; }
+
+.busca-linha { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-top: 18px; }
+.busca-campo { position: relative; }
+.busca-campo .ico { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--pulso); pointer-events: none; }
+.busca-campo input {
+  width: 100%; height: 56px; border-radius: var(--r-grande); border: 1px solid var(--linha); background: var(--superficie);
+  padding: 0 16px 0 52px; font-size: 16px;
 }
+.busca-campo input::placeholder { color: var(--tinta-3); }
+.busca-campo input:focus { outline: 2px solid var(--pulso); outline-offset: 0; }
+.busca-linha .btn-ico { width: 56px; height: 56px; border-radius: var(--r-grande); color: var(--pulso); }
+
+.card-dia { margin-top: 14px; padding: 18px 18px 16px; display: grid; gap: 8px; text-align: left; width: 100%; }
+.card-dia-topo { display: flex; align-items: center; gap: 10px; }
+.card-dia-topo .marcador { width: 34px; height: 34px; border-radius: 10px; background: var(--pulso-suave); color: var(--pulso); display: grid; place-items: center; }
+.card-dia-topo strong { color: var(--pulso); font-size: 15px; flex: 1; }
+.card-dia-topo .btn-ico { width: 40px; height: 40px; background: var(--pulso-suave); border-color: transparent; color: var(--pulso); }
+.card-dia .pergunta { font-size: 19px; font-weight: 700; line-height: 1.35; }
+.card-dia .resposta { color: var(--tinta-2); border-top: 1px dashed var(--linha); padding-top: 10px; }
+.card-dia .resposta img { max-width: 100%; height: auto; }
+.card-dia .rodape { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--tinta-2); }
+.card-dia .rodape .btn-texto { font-size: 14px; }
+.etiqueta { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--pulso-suave); color: var(--pulso-forte); }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 16px 4px; margin: 20px -16px 0; scrollbar-width: none; scroll-snap-type: x proximity; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; border: 1px solid var(--linha); background: var(--superficie); color: var(--tinta); border-radius: 999px;
+  padding: 10px 18px; font-weight: 600; font-size: 15px; scroll-snap-align: start; white-space: nowrap;
+}
+.chip[aria-pressed="true"] { background: var(--pulso-suave); border-color: color-mix(in srgb, var(--pulso) 40%, var(--linha)); color: var(--pulso-forte); }
+
+.progresso-geral { padding: 18px; display: grid; gap: 10px; margin-top: 14px; }
+.progresso-geral .linha { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.progresso-geral strong { font-size: 17px; }
+.progresso-geral .pct { color: var(--pulso); font-weight: 800; font-size: 20px; }
+.barra { height: 8px; background: var(--superficie-2); border-radius: 99px; overflow: hidden; display: flex; gap: 2px; }
+.barra i { display: block; height: 100%; border-radius: 99px; }
+.progresso-geral small { color: var(--tinta-2); font-size: 14px; }
+
+.grade-decks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 700px) { .grade-decks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .grade-decks { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tile {
+  position: relative; text-align: left; padding: 14px 14px 12px; min-height: 138px;
+  display: grid; grid-template-rows: auto auto 1fr auto; gap: 4px;
+}
+.tile:hover { border-color: color-mix(in srgb, var(--pulso) 35%, var(--linha)); }
+.tile h3 { font-size: clamp(15px, 4vw, 17px); font-weight: 700; line-height: 1.2; overflow-wrap: break-word; hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tile .area-nome { font-size: 13px; color: var(--tinta-2); }
+.tile .tile-pe { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.tile .tile-pe .ico { width: 34px; height: 34px; color: var(--pulso); stroke-width: 1.6; }
+.mini-contagens { display: flex; gap: 10px; font-size: 14px; font-weight: 700; }
+
+/* ---------- decks (árvore do Anki) ---------- */
+.titulo-pag { margin-top: 18px; display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.titulo-pag h1 { font-size: clamp(30px, 7vw, 38px); font-weight: 800; }
+.titulo-pag p { color: var(--tinta-2); margin-top: 4px; }
+.arvore { margin-top: 18px; overflow: hidden; }
+.arvore-cab, .no {
+  display: grid; grid-template-columns: minmax(0, 1fr) 46px 46px 46px; align-items: center; gap: 4px; padding: 0 14px;
+}
+.arvore-cab { font-size: 12px; font-weight: 700; color: var(--tinta-2); padding-top: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--linha); }
+.arvore-cab span:not(:first-child), .no .n { text-align: right; }
+.no { min-height: 56px; border-bottom: 1px solid var(--linha); }
+.no:last-child { border-bottom: 0; }
+.no .n { font-weight: 700; font-size: 15px; }
+.no-nome { display: flex; align-items: center; gap: 8px; min-width: 0; border: 0; background: none; padding: 10px 0; text-align: left; }
+.no-nome .txt { min-width: 0; overflow-wrap: anywhere; }
+.no-area .no-nome { font-weight: 700; font-size: 16px; }
+.no-sub .no-nome { padding-left: 34px; font-size: 15px; }
+.no-area { background: var(--superficie-2); }
+.expandir { width: 26px; height: 26px; border-radius: 8px; border: 0; background: none; display: grid; place-items: center; color: var(--tinta-2); padding: 0; flex: none; }
+.expandir .ico { width: 18px; height: 18px; transition: transform .15s; }
+.expandir[aria-expanded="true"] .ico { transform: rotate(90deg); }
+.no-nome .ico-deck { width: 20px; height: 20px; color: var(--pulso); }
+.no-nome:hover .txt { color: var(--pulso); }
+.legenda-anki { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--tinta-2); margin-top: 12px; }
+.legenda-anki span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda-anki i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* ---------- visão geral do deck ---------- */
+.voltar { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--tinta-2); font-weight: 600; padding: 8px 0; margin-top: 6px; }
+.deck-cab { display: flex; gap: 14px; align-items: center; margin-top: 8px; }
+.deck-cab .ic { width: 56px; height: 56px; border-radius: 16px; background: var(--pulso-suave); color: var(--pulso); display: grid; place-items: center; flex: none; }
+.deck-cab .ic .ico { width: 30px; height: 30px; }
+.deck-cab h1 { font-size: clamp(26px, 6vw, 34px); font-weight: 800; }
+.deck-cab p { color: var(--tinta-2); font-size: 14px; margin-top: 2px; }
+.visao { margin-top: 18px; padding: 22px 20px; display: grid; gap: 18px; }
+.visao .contagens-grandes { text-align: center; }
+.fatos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.fato { padding: 14px; display: grid; gap: 2px; }
+.fato b { font-size: 22px; font-weight: 800; }
+.fato span { font-size: 13px; color: var(--tinta-2); }
+.dica { font-size: 13px; color: var(--tinta-2); text-align: center; }
 
 /* ---------- estudo ---------- */
-.estudo { max-width: 780px; margin: 0 auto; display: grid; gap: 16px; }
-.estudo-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.estudo-topo .titulo { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
-.progresso-sessao { height: 4px; background: var(--linha); border-radius: 99px; overflow: hidden; }
-.progresso-sessao i { display: block; height: 100%; background: var(--acento); transition: width .3s; }
+.estudo { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; padding-top: max(10px, env(safe-area-inset-top, 0px)); }
+.estudo-topo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.estudo-topo .titulo { font-weight: 700; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.restantes { display: flex; justify-content: center; gap: 14px; font-size: 18px; font-weight: 800; }
+.restantes span { padding-bottom: 2px; border-bottom: 2px solid transparent; }
+.restantes span.atual { border-bottom-color: currentColor; }
+.prog-sessao { height: 4px; background: var(--superficie-2); border-radius: 99px; overflow: hidden; }
+.prog-sessao i { display: block; height: 100%; background: var(--pulso); transition: width .3s; }
 .card {
-  position: relative; min-height: 300px; padding: clamp(22px, 5vw, 40px);
-  font-size: clamp(18px, 2.6vw, 21px); line-height: 1.6; box-shadow: var(--sombra);
+  position: relative; min-height: min(56vh, 460px); padding: clamp(24px, 5vw, 44px);
+  font-size: clamp(19px, 2.6vw, 22px); line-height: 1.6; box-shadow: var(--sombra);
   user-select: none; -webkit-user-select: none; overflow-wrap: anywhere;
-  background-color: var(--superficie);
 }
-.card .marca-dagua { position: absolute; inset: 0; pointer-events: none; opacity: .07; border-radius: var(--raio); }
-.card-conteudo { position: relative; text-align: center; }
-.card-conteudo img { max-width: 100%; height: auto; border-radius: 6px; margin: 8px auto; display: block; -webkit-user-drag: none; }
-.card-conteudo hr, .card-conteudo hr#answer { border: 0; border-top: 1px dashed var(--linha); margin: 22px 0; }
-.card-conteudo .cloze { color: var(--acento); font-weight: 700; }
+.card .marca-dagua { position: absolute; inset: 0; pointer-events: none; opacity: .06; border-radius: var(--r-grande); }
+.card-conteudo { position: relative; text-align: center; padding-top: 14px; }
+.card-conteudo img { max-width: 100%; height: auto; border-radius: 8px; margin: 8px auto; display: block; -webkit-user-drag: none; }
+.card-conteudo hr, .card-conteudo hr#answer { border: 0; border-top: 1px dashed var(--linha); margin: 24px 0; }
+.card-conteudo .cloze { color: var(--pulso); font-weight: 700; }
 .card-conteudo table { margin: 10px auto; border-collapse: collapse; font-size: .9em; }
 .card-conteudo td, .card-conteudo th { border: 1px solid var(--linha); padding: 4px 8px; }
 .card-conteudo ul, .card-conteudo ol { text-align: left; display: inline-block; margin: 8px 0; }
 .card-conteudo details.hint { margin-top: 14px; font-size: .9em; color: var(--tinta-2); }
-.card-conteudo details.hint summary { cursor: pointer; color: var(--acento); font-weight: 700; }
-.tipo-card { position: absolute; top: 12px; left: 14px; font-size: 11px; }
-.acoes { display: grid; gap: 10px; }
-.mostrar { width: 100%; padding: 16px; font-size: 17px; }
+.card-conteudo details.hint summary { cursor: pointer; color: var(--pulso); font-weight: 700; }
+.tipo-card { position: absolute; top: 14px; left: 16px; font-size: 12px; font-weight: 700; }
+.acoes { display: grid; gap: 8px; position: sticky; bottom: 0; padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--fundo) 30%); }
+.mostrar { width: 100%; min-height: 56px; font-size: 17px; }
 .respostas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .resp {
-  display: grid; gap: 2px; justify-items: center; padding: 10px 6px; border-radius: 8px; cursor: pointer;
-  border: 1px solid var(--linha); background: var(--superficie); font-weight: 700;
+  display: grid; gap: 2px; justify-items: center; padding: 8px 4px 10px; border-radius: var(--r-medio); min-height: 60px;
+  border: 1px solid var(--linha); background: var(--superficie); font-weight: 700; font-size: 15px;
 }
-.resp small { font-family: var(--f-dado); font-weight: 500; font-size: 12px; color: var(--tinta-2); }
-.resp[data-nota="1"] { color: var(--errei); } .resp[data-nota="2"] { color: var(--dificil); }
-.resp[data-nota="3"] { color: var(--bom); }   .resp[data-nota="4"] { color: var(--facil); }
+.resp small { font-weight: 600; font-size: 12px; color: var(--tinta-2); }
+.resp[data-nota="1"] { color: var(--novamente); } .resp[data-nota="2"] { color: var(--tinta-2); }
+.resp[data-nota="3"] { color: var(--revisar); }   .resp[data-nota="4"] { color: var(--novo); }
 .resp:hover { border-color: currentColor; }
-.atalhos { font-size: 12px; color: var(--tinta-2); text-align: center; }
-.atalhos kbd { font-family: var(--f-dado); border: 1px solid var(--linha); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 11px; }
+.atalhos { font-size: 12px; color: var(--tinta-3); text-align: center; }
+.atalhos kbd { font-family: inherit; border: 1px solid var(--linha); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; font-size: 11px; }
 @media (hover: none) { .atalhos { display: none; } }
-.fim { text-align: center; padding: 48px 20px; display: grid; gap: 14px; justify-items: center; }
+.fim { text-align: center; padding: 44px 20px; display: grid; gap: 14px; justify-items: center; margin-top: 24px; }
 .fim h2 { font-size: 28px; font-weight: 800; }
+.fim p { color: var(--tinta-2); max-width: 46ch; }
+
+/* ---------- busca ---------- */
+.resultados { margin-top: 14px; overflow: hidden; }
+.resultado { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px 8px 14px 16px; border-bottom: 1px solid var(--linha); }
+.resultado:last-child { border-bottom: 0; }
+.resultado .abrir { border: 0; background: none; text-align: left; padding: 0; display: grid; gap: 4px; min-width: 0; }
+.resultado .caminho { font-size: 12px; color: var(--tinta-2); }
+.resultado .frente { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.estado { font-size: 12px; font-weight: 700; }
+.resultado .btn-ico { border: 0; background: none; color: var(--tinta-3); }
+.resultado .btn-ico[aria-pressed="true"] { color: var(--pulso); background: none; }
+.folha-fundo { position: fixed; inset: 0; z-index: 30; background: rgba(20, 12, 18, .45); display: grid; align-items: end; justify-items: center; }
+.folha {
+  width: 100%; max-width: 680px; max-height: 88vh; overflow: auto; background: var(--fundo);
+  border-radius: 24px 24px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px;
+}
+@media (min-width: 700px) { .folha-fundo { align-items: center; } .folha { border-radius: 24px; } }
+.folha-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.folha-topo span { font-size: 13px; color: var(--tinta-2); }
+.folha .card { min-height: 0; }
 
 /* ---------- estatísticas ---------- */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
-.kpi { padding: 16px; display: grid; gap: 4px; }
-.kpi b { font-family: var(--f-dado); font-size: 28px; font-variant-numeric: tabular-nums; }
-.grafico { padding: 18px; margin-bottom: 18px; }
-.grafico .plot { width: 100%; height: auto; display: block; }
-.grafico .plot text { fill: var(--tinta-2); font-family: var(--f-dado); font-size: 11px; }
-.tabela-wrap { overflow-x: auto; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+@media (min-width: 700px) { .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.kpi { padding: 16px; display: grid; gap: 2px; }
+.kpi b { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+.kpi span { font-size: 14px; color: var(--tinta-2); }
+.grafico { padding: 18px; margin-top: 14px; }
+.grafico h2 { font-size: 18px; font-weight: 700; }
+.grafico .nota { font-size: 13px; color: var(--tinta-2); margin-top: 2px; }
+.grafico svg.plot { width: 100%; height: auto; display: block; margin-top: 14px; overflow: visible; }
+.grafico svg.plot text { fill: var(--tinta-2); font-family: var(--f); font-size: 11px; }
+.grafico svg.plot .alvo:hover + .marca-h, .grafico svg.plot rect.cel:hover { stroke: var(--tinta); stroke-width: 1.5; }
+.legenda { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; font-size: 13px; color: var(--tinta-2); }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legenda b { color: var(--tinta); }
+.rolagem { overflow-x: auto; }
 table.tab { width: 100%; border-collapse: collapse; font-size: 15px; }
-table.tab th { text-align: left; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-2); padding: 12px 16px; border-bottom: 1px solid var(--linha); }
+table.tab th { text-align: left; font-size: 13px; color: var(--tinta-2); font-weight: 600; padding: 10px 16px; border-bottom: 1px solid var(--linha); }
 table.tab td { padding: 12px 16px; border-bottom: 1px solid var(--linha); }
 table.tab tr:last-child td { border-bottom: 0; }
-table.tab td.num { text-align: right; }
-.selo { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-.selo-bom { background: color-mix(in srgb, var(--bom) 16%, transparent); color: var(--bom); }
-.selo-medio { background: color-mix(in srgb, var(--dificil) 16%, transparent); color: var(--dificil); }
-.selo-ruim { background: color-mix(in srgb, var(--errei) 16%, transparent); color: var(--errei); }
+table.tab .dir { text-align: right; }
+.selo { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+.selo-bom { background: color-mix(in srgb, var(--revisar) 16%, transparent); color: var(--revisar); }
+.selo-medio { background: color-mix(in srgb, var(--aprendendo) 16%, transparent); color: var(--aprendendo); }
+.selo-ruim { background: color-mix(in srgb, var(--novamente) 16%, transparent); color: var(--novamente); }
+.dica-flutuante {
+  position: fixed; z-index: 40; pointer-events: none; background: var(--tinta); color: var(--fundo);
+  font-size: 13px; padding: 6px 10px; border-radius: 8px; box-shadow: var(--sombra); white-space: nowrap;
+}
 
-/* ---------- conta ---------- */
-.conta { display: grid; gap: 16px; max-width: 640px; }
-.conta .painel { padding: 20px; display: grid; gap: 12px; }
-.conta h2 { font-size: 19px; font-weight: 700; }
+/* ---------- perfil ---------- */
+.perfil { display: grid; gap: 14px; max-width: 680px; margin-top: 18px; }
+.perfil .caixa { padding: 20px; display: grid; gap: 12px; }
+.perfil h2 { font-size: 18px; font-weight: 700; }
 .linha-info { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--linha); padding-top: 10px; }
 .linha-info:first-of-type { border-top: 0; padding-top: 0; }
 .linha-info span:first-child { color: var(--tinta-2); }
+.segmentado { display: inline-grid; grid-auto-flow: column; background: var(--superficie-2); border-radius: 12px; padding: 4px; gap: 4px; }
+.segmentado button { border: 0; background: none; padding: 8px 14px; border-radius: 9px; font-weight: 600; color: var(--tinta-2); }
+.segmentado button[aria-pressed="true"] { background: var(--superficie); color: var(--tinta); box-shadow: var(--sombra); }
 .disp { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--linha); padding-top: 10px; }
 .disp div { min-width: 0; overflow-wrap: anywhere; }
+.texto-2 { color: var(--tinta-2); font-size: 14px; }
 
 .toast {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 20;
-  background: var(--tinta); color: var(--papel); padding: 10px 16px; border-radius: 8px; font-size: 14px; box-shadow: var(--sombra);
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); z-index: 50;
+  background: var(--tinta); color: var(--fundo); padding: 11px 16px; border-radius: 12px; font-size: 14px; box-shadow: var(--sombra);
   max-width: calc(100% - 32px);
 }
+@media (min-width: 900px) { .toast { bottom: 24px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
-<div id="aviso-demo" class="aviso-demo" hidden>Modo demonstração: os dados são de exemplo e ficam só neste navegador. Para vender, configure o Supabase seguindo o guia.</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-pulso" viewBox="0 0 24 24"><path d="M2 12h4.5l2-5 4 10 2.5-6.5 1.5 1.5H22"/></symbol>
+    <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></symbol>
+    <symbol id="i-decks" viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="13" height="13" rx="2.5"/><path d="M7.5 4.5h10a3 3 0 0 1 3 3v10"/></symbol>
+    <symbol id="i-busca" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-6M3 20.5h18"/></symbol>
+    <symbol id="i-perfil" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1.4-3.6 4.2-5.5 7.5-5.5s6.1 1.9 7.5 5.5"/></symbol>
+    <symbol id="i-lua" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 6.5h9M18 6.5h2M4 12h3M11 12h9M4 17.5h11M19 17.5h1"/><circle cx="15.5" cy="6.5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17.5" r="2"/></symbol>
+    <symbol id="i-coracao" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-9.2-9.4A4.9 4.9 0 0 1 12 6.6a4.9 4.9 0 0 1 9.2 4C19.5 15.4 12 20 12 20Z"/></symbol>
+    <symbol id="i-embaralhar" viewBox="0 0 24 24"><path d="M3 7h2.5c5 0 7 10 12 10H21M3 17h2.5c1.9 0 3.3-1.4 4.5-3.2M14 10.2C15.2 8.4 16.6 7 18.5 7H21M18 4l3 3-3 3M18 14l3 3-3 3"/></symbol>
+    <symbol id="i-seta" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-voltar" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-fechar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-esteto" viewBox="0 0 24 24"><path d="M5 3.5V9a5 5 0 0 0 10 0V3.5"/><path d="M10 14v1.5a4.5 4.5 0 0 0 9 0V13"/><circle cx="19" cy="11" r="2"/></symbol>
+    <symbol id="i-bisturi" viewBox="0 0 24 24"><path d="m3.5 20.5 7.5-7.5"/><path d="M11 13 20 4c.9 3.3-1.2 7.6-5.7 10.3Z"/></symbol>
+    <symbol id="i-bebe" viewBox="0 0 24 24"><circle cx="12" cy="12.5" r="8"/><path d="M9.5 16c1.4 1.1 3.6 1.1 5 0"/><path d="M12 4.5c-1.3 1.3-.6 3.3 1.3 3"/><path d="M9.3 11.5h.01M14.7 11.5h.01"/></symbol>
+    <symbol id="i-gestante" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5.5"/><path d="M12 14.5V21M9 18h6"/></symbol>
+    <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3 19 6v6c0 4.4-3 7.5-7 9-4-1.5-7-4.6-7-9V6Z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+    <symbol id="i-pulmao" viewBox="0 0 24 24"><path d="M12 3.5V12m0-2.5-2.5 2.5M12 9.5l2.5 2.5"/><path d="M8.5 7.5C5.2 8.5 3.5 13 3.5 16.8c0 2.1 1.4 3.2 3 3.2 2 0 3.2-1.5 3.2-3.8V8.5"/><path d="M15.5 7.5c3.3 1 5 5.5 5 9.3 0 2.1-1.4 3.2-3 3.2-2 0-3.2-1.5-3.2-3.8V8.5"/></symbol>
+    <symbol id="i-cerebro" viewBox="0 0 24 24"><path d="M12 5.5A3 3 0 0 0 6.2 6.6 3.2 3.2 0 0 0 4.6 12a3.2 3.2 0 0 0 2 5.3A3 3 0 0 0 12 18.5Z"/><path d="M12 5.5a3 3 0 0 1 5.8 1.1 3.2 3.2 0 0 1 1.6 5.4 3.2 3.2 0 0 1-2 5.3A3 3 0 0 1 12 18.5"/><path d="M12 5.5v13"/></symbol>
+    <symbol id="i-gota" viewBox="0 0 24 24"><path d="M12 3.5s6 6.4 6 10.8a6 6 0 0 1-12 0C6 9.9 12 3.5 12 3.5Z"/><path d="M9.5 15a2.5 2.5 0 0 0 2.5 2.5"/></symbol>
+    <symbol id="i-talher" viewBox="0 0 24 24"><path d="M7 3.5v17M4.8 3.5v4.8a2.2 2.2 0 0 0 4.4 0V3.5"/><path d="M17 20.5v-17c-2.4 1.6-3.2 5.6-3 9h3"/></symbol>
+    <symbol id="i-frasco" viewBox="0 0 24 24"><path d="M9 3.5h6M10 3.5v5.5L5 18a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3.5"/><path d="M7.4 14.5h9.2"/></symbol>
+    <symbol id="i-micro" viewBox="0 0 24 24"><rect x="8" y="7" width="8" height="12.5" rx="4"/><path d="M12 7v12.5M8 11H4.5M8 15.5H4.5M16 11h3.5M16 15.5h3.5M9.5 4l1.3 3M14.5 4l-1.3 3"/></symbol>
+    <symbol id="i-curativo" viewBox="0 0 24 24"><rect x="2.8" y="8.5" width="18.4" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M10.5 12h.01M12 10.5h.01M13.5 12h.01M12 13.5h.01"/></symbol>
+    <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M3.5 3.5v17h17"/><path d="m7.5 15 3.5-4 3 3 5-6.5"/></symbol>
+    <symbol id="i-hospital" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16.5" rx="2.5"/><path d="M12 8v6.5M8.8 11.2h6.4"/></symbol>
+    <symbol id="i-livro" viewBox="0 0 24 24"><path d="M4.5 5.5a2 2 0 0 1 2-2H19v14.5H6.5a2 2 0 0 0-2 2Z"/><path d="M4.5 19.5a2 2 0 0 0 2 2H19v-3.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5Z"/></symbol>
+  </defs>
+</svg>
+
+<div id="aviso-demo" class="aviso-demo" hidden>Modo demonstração: os dados são de exemplo e ficam só neste navegador.</div>
+
 <header class="topo" id="topo" hidden>
-  <div class="topo-in">
-    <div class="marca">
-      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="6" width="20" height="16" rx="3" fill="none" stroke="var(--acento)" stroke-width="2"/><rect x="7" y="9" width="20" height="16" rx="3" fill="var(--acento)"/><path d="M11 17h3l1.5-3 2.5 6 1.5-3H23" fill="none" stroke="var(--acento-tinta)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="miolo">
+    <button class="marca" type="button" id="ir-inicio" aria-label="Ir para o início">
+      <span class="selo-marca"><svg class="ico"><use href="#i-pulso"/></svg></span>
       <span id="nome-marca">Pulse Medcards</span>
-    </div>
-    <nav class="nav" aria-label="Principal">
-      <button type="button" data-ir="decks">Estudar</button>
+    </button>
+    <nav class="nav-alto" aria-label="Principal">
+      <button type="button" data-ir="inicio">Início</button>
+      <button type="button" data-ir="decks">Decks</button>
+      <button type="button" data-ir="busca">Buscar</button>
       <button type="button" data-ir="stats">Estatísticas</button>
-      <button type="button" data-ir="conta">Conta</button>
     </nav>
+    <div class="topo-acoes">
+      <button class="btn-ico" type="button" id="alternar-tema" aria-label="Alternar tema claro ou escuro"><svg class="ico"><use href="#i-lua"/></svg></button>
+      <button class="btn-ico" type="button" id="ir-perfil" aria-label="Perfil e ajustes"><svg class="ico"><use href="#i-ajustes"/></svg></button>
+    </div>
   </div>
 </header>
-<main class="pagina" id="tela"></main>
+
+<main class="miolo" id="tela"></main>
+
+<nav class="nav-baixo" id="nav-baixo" aria-label="Principal" hidden>
+  <button type="button" data-ir="inicio"><svg class="ico"><use href="#i-casa"/></svg>Início</button>
+  <button type="button" data-ir="decks"><svg class="ico"><use href="#i-decks"/></svg>Decks</button>
+  <button type="button" data-ir="busca"><svg class="ico"><use href="#i-busca"/></svg>Buscar</button>
+  <button type="button" data-ir="stats"><svg class="ico"><use href="#i-stats"/></svg>Estatísticas</button>
+</nav>
+
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="dica-flutuante" id="dica" hidden></div>
 
 <script src="config.js"></script>
 <script>
@@ -265,10 +495,10 @@ table.tab td.num { text-align: right; }
    ===================================================================== */
 const CONFIG = Object.assign({
   NOME: "Pulse Medcards",
-  SUPABASE_URL: "",          // ex.: "https://abcdxyz.supabase.co"
-  SUPABASE_ANON_KEY: "",     // Supabase > Project Settings > API > anon public
-  CHECKOUT_URL: "",          // link do checkout da assinatura na Kiwify
-  SUPORTE: "",               // e-mail ou WhatsApp de suporte exibido ao aluno
+  SUPABASE_URL: "",
+  SUPABASE_ANON_KEY: "",
+  CHECKOUT_URL: "",
+  SUPORTE: "",
   NOVOS_POR_DIA_PADRAO: 20,
   INTERVALO_MAXIMO_DIAS: 365,
 }, Object.fromEntries(Object.entries(window.MEDFLASH_CONFIG || {}).filter(([, v]) => v !== "" && v != null)));
@@ -338,10 +568,28 @@ const DEMO_DECKS = [
     ["Qual é a tríade de Beck e em que situação ela aparece?",
      "Hipotensão, turgência jugular e abafamento de bulhas.<br>Sugere <b>tamponamento cardíaco</b>."],
   ]},
+  { nome: "Clínica Médica::Pneumologia", cards: [
+    ["Quais são os critérios de Light para exsudato pleural?",
+     "Basta um:<br>Proteína pleural / sérica <b>&gt; 0,5</b><br>LDH pleural / sérica <b>&gt; 0,6</b><br>LDH pleural <b>&gt; 2/3</b> do limite superior normal do soro"],
+    ["cloze", "O escore {{c1::CURB-65}} estima a gravidade da pneumonia adquirida na comunidade."],
+  ]},
   { nome: "Clínica Médica::Endocrinologia", cards: [
     ["Cite os critérios laboratoriais para o diagnóstico de diabetes mellitus.",
      "Glicemia de jejum ≥ 126 mg/dL<br>HbA1c ≥ 6,5%<br>Glicemia 2 h após TOTG ≥ 200 mg/dL<br>Glicemia aleatória ≥ 200 mg/dL com sintomas clássicos<br><small>(sem sintomas, confirmar com segundo exame)</small>"],
     ["cloze", "Na cetoacidose diabética, a insulina só deve ser iniciada se o potássio sérico estiver ≥ {{c1::3,3}} mEq/L."],
+  ]},
+  { nome: "Clínica Médica::Nefrologia", cards: [
+    ["Quais são as indicações de diálise de urgência (mnemônico AEIOU)?",
+     "<b>A</b>cidose metabólica grave refratária<br>distúrbios <b>E</b>letrolíticos (hipercalemia refratária)<br><b>I</b>ntoxicações por substâncias dialisáveis<br>sobrecarga de volume refratária (<b>O</b>verload)<br><b>U</b>remia sintomática (pericardite, encefalopatia)"],
+  ]},
+  { nome: "Clínica Médica::Gastroenterologia", cards: [
+    ["Quais parâmetros compõem a classificação de Child-Pugh?", "Bilirrubina, albumina, INR (ou tempo de protrombina), ascite e encefalopatia hepática."],
+  ]},
+  { nome: "Clínica Médica::Neurologia", cards: [
+    ["cloze", "A trombólise intravenosa com alteplase no AVC isquêmico pode ser feita em até {{c1::4,5}} horas do início dos sintomas."],
+  ]},
+  { nome: "Clínica Médica::Infectologia", cards: [
+    ["Qual é a tríade clássica da meningite bacteriana?", "Febre, rigidez de nuca e alteração do estado mental."],
   ]},
   { nome: "Cirurgia::Trauma", cards: [
     ["Qual é a sequência do atendimento inicial ao politraumatizado (ATLS)?",
@@ -352,6 +600,9 @@ const DEMO_DECKS = [
   ]},
   { nome: "Cirurgia::Abdome agudo", cards: [
     ["O que é o sinal de Blumberg?", "Dor à descompressão brusca no ponto de McBurney, indicando irritação peritoneal (apendicite aguda)."],
+  ]},
+  { nome: "Cirurgia::Hérnias", cards: [
+    ["Quais são os limites do triângulo de Hesselbach?", "Vasos epigástricos inferiores (lateral), borda lateral do reto abdominal (medial) e ligamento inguinal (inferior). É o local das hérnias inguinais <b>diretas</b>."],
   ]},
   { nome: "Pediatria::Neonatologia", cards: [
     ["Quais parâmetros compõem o boletim de Apgar e quando ele é avaliado?",
@@ -372,6 +623,9 @@ const DEMO_DECKS = [
     ["Qual a fórmula da sensibilidade de um teste diagnóstico?", "Sensibilidade = VP / (VP + FN)"],
     ["cloze", "O valor preditivo positivo de um teste aumenta quando a {{c1::prevalência}} da doença aumenta."],
     ["O que é prevenção quaternária?", "Ações para evitar a iatrogenia e o excesso de intervenções médicas (conceito de Jamoulle)."],
+  ]},
+  { nome: "Medicina Preventiva::SUS", cards: [
+    ["Quais são os princípios doutrinários do SUS?", "Universalidade, integralidade e equidade."],
   ]},
 ];
 </script>
@@ -396,12 +650,13 @@ function descreverAparelho() {
   const ua = navigator.userAgent;
   const so = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iPhone/iPad" : /Windows/i.test(ua) ? "Windows" : /Mac/i.test(ua) ? "Mac" : /Linux/i.test(ua) ? "Linux" : "Aparelho";
   const nav = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
-  return `${nav} · ${so}`;
+  return `${nav} em ${so}`;
 }
 
 // ---------- Supabase ----------
 function criarApiSupabase(sb) {
   const erro = (e) => { if (e) throw new Error(e.message || String(e)); };
+  const rpc = async (nome, args) => { const { data, error } = await sb.rpc(nome, args); erro(error); return data; };
   return {
     async sessao() { const { data } = await sb.auth.getSession(); return data.session; },
     async entrar(email, senha) {
@@ -415,18 +670,25 @@ function criarApiSupabase(sb) {
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: url }); erro(error);
     },
     async definirSenha(senha) { const { error } = await sb.auth.updateUser({ password: senha }); erro(error); },
-    async assinatura() { const { data, error } = await sb.rpc("minha_assinatura"); erro(error); return data?.[0] ?? null; },
-    async decks() { const { data, error } = await sb.rpc("resumo_decks"); erro(error); return data; },
-    async fila(ids, novos) { const { data, error } = await sb.rpc("fila_estudo", { p_decks: ids, p_novos_por_dia: novos }); erro(error); return data; },
+    async assinatura() { return (await rpc("minha_assinatura"))?.[0] ?? null; },
+    decks: () => rpc("painel_decks"),
+    fila: (ids, novos) => rpc("fila_estudo", { p_decks: ids, p_novos_por_dia: novos }),
+    filaFavoritos: () => rpc("fila_favoritos"),
     async responder(card, nota, r) {
-      const { error } = await sb.rpc("responder_card", {
+      await rpc("responder_card", {
         p_card: card.card_id, p_nota: nota, p_ease: r.ease, p_intervalo: r.intervalo, p_repeticoes: r.repeticoes,
         p_lapsos: r.lapsos, p_estado: r.estado, p_vencimento: r.vencimento,
-      }); erro(error);
+      });
     },
-    async estatisticas() { const { data, error } = await sb.rpc("minhas_estatisticas", { p_dias: 30 }); erro(error); return data; },
-    async porDia() { const { data, error } = await sb.rpc("revisoes_por_dia", { p_dias: 30 }); erro(error); return data; },
-    async registrarDispositivo() { const { error } = await sb.rpc("registrar_dispositivo", { p_dispositivo: idDispositivo(), p_descricao: descreverAparelho() }); erro(error); },
+    buscar: (termo, soFav) => rpc("buscar_cards", { p_termo: termo, p_somente_favoritos: soFav }),
+    async cardDoDia(salto) { return (await rpc("card_do_dia", { p_salto: salto }))?.[0] ?? null; },
+    async favoritosIds() { const { data, error } = await sb.from("favoritos").select("card_id").eq("ativo", true); erro(error); return new Set(data.map((f) => f.card_id)); },
+    alternarFavorito: (id) => rpc("alternar_favorito", { p_card: id }),
+    estatisticas: () => rpc("minhas_estatisticas", { p_dias: 30 }),
+    porDia: (dias = 30) => rpc("revisoes_por_dia", { p_dias: dias }),
+    previsao: () => rpc("previsao_revisoes", { p_dias: 30 }),
+    async estados() { return (await rpc("contagem_estados"))?.[0] ?? { novos: 0, aprendendo: 0, jovens: 0, maduros: 0 }; },
+    async registrarDispositivo() { await rpc("registrar_dispositivo", { p_dispositivo: idDispositivo(), p_descricao: descreverAparelho() }); },
     async dispositivoValido() { const { data, error } = await sb.rpc("dispositivo_valido", { p_dispositivo: idDispositivo() }); if (error) return true; return data; },
     async dispositivos() { const { data, error } = await sb.from("dispositivos").select("*").order("ultimo_acesso", { ascending: false }); erro(error); return data; },
     async removerDispositivo(id) { const { error } = await sb.from("dispositivos").delete().eq("dispositivo", id); erro(error); },
@@ -435,7 +697,6 @@ function criarApiSupabase(sb) {
 
 // ---------- Demonstração (em memória + localStorage) ----------
 function criarApiDemo() {
-  const pad = (n) => String(n).padStart(4, "0");
   const decks = [], cards = [];
   DEMO_DECKS.forEach((d, i) => {
     const id = "deck-" + i;
@@ -453,74 +714,115 @@ function criarApiDemo() {
       }
     });
   });
-  let prog = guardar.ler("mf_demo_prog", {});
-  let hist = guardar.ler("mf_demo_hist", null);
-  if (!hist) {
-    // Histórico de exemplo dos últimos 14 dias, para a tela de estatísticas não abrir vazia
-    hist = [];
-    for (let d = 14; d >= 1; d--) {
-      if (d % 5 === 0) continue;
-      const n = 12 + ((d * 7) % 23);
+  let prog = guardar.ler("pm_demo_prog", null);
+  let hist = guardar.ler("pm_demo_hist", null);
+  let favs = new Set(guardar.ler("pm_demo_favs", []));
+  const DIA = 86400000;
+  if (!prog || !hist) {
+    // Progresso e histórico de exemplo para as telas não abrirem vazias
+    prog = {}; hist = [];
+    cards.forEach((c, k) => {
+      if (k % 3 === 2) return;
+      const intervalo = [1, 3, 8, 25, 40, 2, 12][k % 7];
+      const venc = k % 4 === 0 ? Date.now() - 3600000 : Date.now() + ((k % 9) + 1) * DIA;
+      prog[c.card_id] = { ease: 2.5, intervalo, repeticoes: 3, lapsos: 0, estado: k % 11 === 0 ? "aprendendo" : "revisao", vencimento: new Date(venc).toISOString(), criado: Date.now() - 20 * DIA };
+    });
+    for (let d = 110; d >= 1; d--) {
+      if ((d * 7) % 5 === 0 || (d > 60 && d % 3 === 0)) continue;
+      const n = 6 + ((d * 13) % 34);
       for (let k = 0; k < n; k++) {
         const card = cards[(d * 3 + k) % cards.length];
-        hist.push({ card_id: card.card_id, deck_id: card.deck_id, nota: (k + d) % 6 === 0 ? 1 : (k % 7 === 0 ? 2 : 3), em: Date.now() - d * 86400000 + k * 60000 });
+        hist.push({ card_id: card.card_id, deck_id: card.deck_id, nota: (k + d) % 6 === 0 ? 1 : (k % 7 === 0 ? 2 : 3), em: Date.now() - d * DIA + k * 60000 });
       }
     }
-    guardar.gravar("mf_demo_hist", hist);
+    favs = new Set([cards[0].card_id, cards[5].card_id]);
   }
-  const salvar = () => { guardar.gravar("mf_demo_prog", prog); guardar.gravar("mf_demo_hist", hist); };
+  const salvar = () => { guardar.gravar("pm_demo_prog", prog); guardar.gravar("pm_demo_hist", hist); guardar.gravar("pm_demo_favs", [...favs]); };
+  salvar();
   const hoje0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const chaveDia = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   let logado = guardar.ler("mf_demo_sessao", null);
   const dispositivos = [{ dispositivo: idDispositivo(), descricao: descreverAparelho(), ultimo_acesso: new Date().toISOString() }];
+  const deckNome = (id) => decks.find((d) => d.id === id)?.nome ?? "";
+  const comoFila = (c, novo) => ({ ...c, novo, ...(novo ? { ease: 2.5, intervalo: 0, repeticoes: 0, lapsos: 0, estado: "aprendendo" } : prog[c.card_id]) });
 
   return {
     async sessao() { return logado; },
     async entrar(email, senha) {
       if (!email || !senha) throw new Error("Informe e-mail e senha.");
-      logado = { user: { email } }; guardar.gravar("mf_demo_sessao", logado); return logado;
+      logado = { user: { email, user_metadata: { nome: "Pedro" } } }; guardar.gravar("mf_demo_sessao", logado); return logado;
     },
     async sair() { logado = null; guardar.apagar("mf_demo_sessao"); },
     async enviarRecuperacao() {},
     async definirSenha() {},
-    async assinatura() { return { status: "ativa", plano: "Assinatura mensal (demonstração)", expira_em: new Date(Date.now() + 23 * 86400000).toISOString(), acesso: true }; },
+    async assinatura() { return { status: "ativa", plano: "Assinatura mensal (demonstração)", expira_em: new Date(Date.now() + 23 * DIA).toISOString(), acesso: true }; },
     async decks() {
       const agora = Date.now();
       return decks.map((d) => {
         const doDeck = cards.filter((c) => c.deck_id === d.id);
-        const est = doDeck.filter((c) => prog[c.card_id]);
-        return { ...d, total: doDeck.length, estudados: est.length, vencidos: est.filter((c) => new Date(prog[c.card_id].vencimento).getTime() <= agora).length };
+        const p = doDeck.map((c) => prog[c.card_id]).filter(Boolean);
+        return { ...d, total: doDeck.length, estudados: p.length,
+          aprendendo: p.filter((x) => x.estado === "aprendendo" && new Date(x.vencimento) <= agora).length,
+          revisar: p.filter((x) => x.estado === "revisao" && new Date(x.vencimento) <= agora).length,
+          maduros: p.filter((x) => x.intervalo >= 21).length,
+          novos_hoje: p.filter((x) => x.criado >= hoje0()).length };
       });
     },
     async fila(ids, novos) {
       const agora = Date.now();
-      const vencidos = cards.filter((c) => ids.includes(c.deck_id) && prog[c.card_id] && new Date(prog[c.card_id].vencimento).getTime() <= agora)
-        .map((c) => ({ ...c, novo: false, ...prog[c.card_id] }));
-      const introduzidosHoje = Object.entries(prog).filter(([id, p]) => p.criado >= hoje0() && cards.find((c) => c.card_id === id && ids.includes(c.deck_id))).length;
-      const novosLista = cards.filter((c) => ids.includes(c.deck_id) && !prog[c.card_id]).slice(0, Math.max(0, novos - introduzidosHoje))
-        .map((c) => ({ ...c, novo: true, ease: 2.5, intervalo: 0, repeticoes: 0, lapsos: 0, estado: "aprendendo" }));
+      const vencidos = cards.filter((c) => ids.includes(c.deck_id) && prog[c.card_id] && new Date(prog[c.card_id].vencimento).getTime() <= agora).map((c) => comoFila(c, false));
+      const introduzidos = cards.filter((c) => ids.includes(c.deck_id) && prog[c.card_id]?.criado >= hoje0()).length;
+      const novosLista = cards.filter((c) => ids.includes(c.deck_id) && !prog[c.card_id]).slice(0, Math.max(0, novos - introduzidos)).map((c) => comoFila(c, true));
       return [...vencidos, ...novosLista];
     },
+    async filaFavoritos() { return cards.filter((c) => favs.has(c.card_id)).map((c) => comoFila(c, !prog[c.card_id])); },
     async responder(card, nota, r) {
       prog[card.card_id] = { ...r, criado: prog[card.card_id]?.criado ?? Date.now() };
       hist.push({ card_id: card.card_id, deck_id: card.deck_id, nota, em: Date.now() });
       salvar();
     },
+    async buscar(termo, soFav) {
+      const t = (termo || "").toLowerCase();
+      return cards.filter((c) => (!soFav || favs.has(c.card_id)) && (!t || (c.frente + c.verso + deckNome(c.deck_id)).toLowerCase().includes(t)))
+        .slice(0, 60).map((c) => ({ ...c, deck: deckNome(c.deck_id), favorito: favs.has(c.card_id), estado: prog[c.card_id]?.estado ?? null, vencimento: prog[c.card_id]?.vencimento ?? null, intervalo: prog[c.card_id]?.intervalo ?? null }));
+    },
+    async cardDoDia(salto) {
+      const semente = Math.floor(Date.now() / DIA) * 31 + salto * 7;
+      const c = cards[semente % cards.length];
+      return { card_id: c.card_id, deck: deckNome(c.deck_id), frente: c.frente, verso: c.verso };
+    },
+    async favoritosIds() { return new Set(favs); },
+    async alternarFavorito(id) { if (favs.has(id)) favs.delete(id); else favs.add(id); salvar(); return favs.has(id); },
     async estatisticas() {
-      const lim = Date.now() - 30 * 86400000, por = {};
+      const lim = Date.now() - 30 * DIA, por = {};
       for (const h of hist) if (h.em > lim) {
-        const p = (por[h.deck_id] ??= { deck_id: h.deck_id, deck: decks.find((d) => d.id === h.deck_id)?.nome, respostas: 0, acertos: 0 });
+        const p = (por[h.deck_id] ??= { deck_id: h.deck_id, deck: deckNome(h.deck_id), respostas: 0, acertos: 0 });
         p.respostas++; if (h.nota >= 3) p.acertos++;
       }
       return Object.values(por).sort((a, b) => b.respostas - a.respostas);
     },
-    async porDia() {
+    async porDia(dias = 30) {
       const por = {};
       for (const h of hist) {
-        if (h.em < Date.now() - 30 * 86400000) continue;
-        const d = new Date(h.em); const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        if (h.em < Date.now() - dias * DIA) continue;
+        const k = chaveDia(h.em);
         const p = (por[k] ??= { dia: k, respostas: 0, acertos: 0 }); p.respostas++; if (h.nota >= 3) p.acertos++;
       }
       return Object.values(por).sort((a, b) => a.dia.localeCompare(b.dia));
+    },
+    async previsao() {
+      const por = {};
+      for (const p of Object.values(prog)) {
+        const v = Math.max(new Date(p.vencimento).getTime(), Date.now());
+        if (v > Date.now() + 30 * DIA) continue;
+        const k = chaveDia(v); por[k] = (por[k] ?? 0) + 1;
+      }
+      return Object.entries(por).map(([dia, quantidade]) => ({ dia, quantidade }));
+    },
+    async estados() {
+      const p = Object.values(prog);
+      return { novos: cards.length - p.length, aprendendo: p.filter((x) => x.estado === "aprendendo").length,
+        jovens: p.filter((x) => x.estado === "revisao" && x.intervalo < 21).length, maduros: p.filter((x) => x.estado === "revisao" && x.intervalo >= 21).length };
     },
     async registrarDispositivo() {},
     async dispositivoValido() { return true; },
@@ -535,41 +837,166 @@ function criarApiDemo() {
 /* =====================================================================
    INTERFACE
    ===================================================================== */
-let api = null;
-let sessao = null;
-let assinatura = null;
+let api = null, sessao = null, assinatura = null;
 const tela = document.getElementById("tela");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmtData = (iso) => iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 const novosPorDia = () => guardar.ler("mf_novos_dia", CONFIG.NOVOS_POR_DIA_PADRAO);
+const ico = (nome, cls = "") => `<svg class="ico ${cls}" aria-hidden="true"><use href="#i-${nome}"/></svg>`;
+const N = (v) => Number(v ?? 0);
+const semAcento = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const textoPuro = (html) => { const d = document.createElement("div"); d.innerHTML = String(html ?? "").replace(/<hr[^>]*>/gi, " — ").replace(/<br\s*\/?>/gi, " "); return d.textContent.replace(/\s+/g, " ").trim(); };
+const caminho = (nome) => String(nome).split("::").join(" › ");
+const folhaDoNome = (nome) => String(nome).split("::").at(-1);
+
+const AREAS = ["Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva"];
+const ICONES = [
+  [/cardio|coracao/, "coracao"], [/pneumo|respirat|pulm/, "pulmao"], [/neuro|psiq/, "cerebro"],
+  [/nefro|renal|urin|hemato|sangue/, "gota"], [/gastro|hepat|digest|abdom/, "talher"], [/endocr|diabet|metab|tireo/, "frasco"],
+  [/infect|micro|parasit|imuno/, "micro"], [/trauma|urgenc|emerg|queimad/, "curativo"], [/neonat|pediat|puericult|crianc/, "bebe"],
+  [/obstet|gineco|gestac|mama/, "gestante"], [/epidem|bioest|estatist/, "grafico"], [/sus\b|saude publ|politic/, "hospital"],
+  [/prevent|vigil|vacin/, "escudo"], [/cirurg|hernia|cabeca|torax|vascular/, "bisturi"], [/clinica/, "esteto"],
+];
+const iconeDe = (nome) => { const n = semAcento(nome); for (const [re, i] of ICONES) if (re.test(n)) return i; return "livro"; };
 
 function toast(texto) {
   const t = document.getElementById("toast");
   t.textContent = texto; t.hidden = false;
-  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3200);
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3000);
 }
 
+/* ---------- tema ---------- */
+function temaAtual() {
+  const t = document.documentElement.dataset.theme;
+  if (t) return t;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function aplicarTema(t) {
+  if (t === "auto") { delete document.documentElement.dataset.theme; guardar.apagar("pm_tema"); }
+  else { document.documentElement.dataset.theme = t; guardar.gravar("pm_tema", t); try { localStorage.setItem("pm_tema", t); } catch {} }
+  const escuro = temaAtual() === "dark";
+  document.querySelector('meta[name="theme-color"]').content = escuro ? "#141016" : "#FBF8F9";
+  document.querySelector("#alternar-tema use").setAttribute("href", escuro ? "#i-sol" : "#i-lua");
+}
+document.getElementById("alternar-tema").addEventListener("click", () => aplicarTema(temaAtual() === "dark" ? "light" : "dark"));
+
+/* ---------- navegação ---------- */
+let telaAtual = "inicio";
 function marcarNav(nome) {
-  document.querySelectorAll(".nav button").forEach((b) => {
+  document.querySelectorAll("[data-ir]").forEach((b) => {
     if (b.dataset.ir === nome) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   });
 }
-document.querySelectorAll(".nav button").forEach((b) => b.addEventListener("click", () => ir(b.dataset.ir)));
+document.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click", () => ir(b.dataset.ir)));
+document.getElementById("ir-inicio").addEventListener("click", () => ir("inicio"));
+document.getElementById("ir-perfil").addEventListener("click", () => ir("perfil"));
 
+function mostrarMoldura(sim) {
+  document.getElementById("topo").hidden = !sim;
+  document.getElementById("nav-baixo").hidden = !sim;
+}
 function ir(nome, ...args) {
   window.scrollTo(0, 0);
-  const telas = { decks: telaDecks, stats: telaStats, conta: telaConta, estudo: telaEstudo };
-  marcarNav(nome === "estudo" ? "decks" : nome);
+  telaAtual = nome;
+  const telas = { inicio: telaInicio, decks: telaDecks, deck: telaDeck, busca: telaBusca, stats: telaStats, perfil: telaPerfil, estudo: telaEstudo };
+  mostrarMoldura(nome !== "estudo");
+  marcarNav({ deck: "decks" }[nome] ?? nome);
   telas[nome](...args);
 }
+const carregando = (txt = "Carregando…") => { tela.innerHTML = `<div class="vazio">${txt}</div>`; };
+const falha = (e) => { tela.innerHTML = `<div class="msg msg-erro" style="margin-top:18px">Não foi possível carregar: ${esc(e.message)}. Verifique sua conexão e tente de novo.</div>`; };
 
-// ---------- entrada ----------
-const AREAS = ["Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva"];
+/* ---------- decks: agrupamento e contagens no estilo Anki ---------- */
+let cacheDecks = null;
+async function obterDecks(forcar = false) {
+  if (!cacheDecks || forcar) cacheDecks = await api.decks();
+  return cacheDecks;
+}
+// Novos disponíveis hoje respeitando o limite diário (como o Anki mostra)
+function novosDisponiveis(lista) {
+  const restantes = lista.reduce((s, d) => s + Math.max(0, N(d.total) - N(d.estudados)), 0);
+  const hoje = lista.reduce((s, d) => s + N(d.novos_hoje), 0);
+  return Math.min(restantes, Math.max(0, novosPorDia() - hoje));
+}
+function contar(lista) {
+  return {
+    novos: novosDisponiveis(lista),
+    aprendendo: lista.reduce((s, d) => s + N(d.aprendendo), 0),
+    revisar: lista.reduce((s, d) => s + N(d.revisar), 0),
+    total: lista.reduce((s, d) => s + N(d.total), 0),
+    estudados: lista.reduce((s, d) => s + N(d.estudados), 0),
+    maduros: lista.reduce((s, d) => s + N(d.maduros), 0),
+  };
+}
+function agrupar(lista) {
+  const grupos = new Map();
+  for (const d of lista) {
+    const area = d.nome.split("::")[0];
+    if (!grupos.has(area)) grupos.set(area, []);
+    grupos.get(area).push(d);
+  }
+  const ordem = (a) => { const i = AREAS.indexOf(a); return i < 0 ? 99 : i; };
+  return [...grupos.entries()].sort((a, b) => ordem(a[0]) - ordem(b[0]) || a[0].localeCompare(b[0]));
+}
+const num = (v, cls) => `<span class="${cls} ${v ? "" : "zero"}">${v}</span>`;
 
+/* ---------- traçado de ECG com os últimos 14 dias ---------- */
+function tracadoEcg(dias) {
+  const W = 336, H = 70, base = 44, larg = W / dias.length;
+  const max = Math.max(1, ...dias.map((d) => d.n));
+  let p = `M0 ${base}`;
+  dias.forEach((d, i) => {
+    const x = i * larg;
+    if (!d.n) { p += ` L${(x + larg).toFixed(1)} ${base}`; return; }
+    const alt = 10 + (d.n / max) * 30;
+    const c = x + larg * 0.55;
+    p += ` L${(x + larg * 0.22).toFixed(1)} ${base} Q${(x + larg * 0.3).toFixed(1)} ${base - 4} ${(x + larg * 0.38).toFixed(1)} ${base}`
+      + ` L${(c - 3).toFixed(1)} ${base} L${(c - 1.5).toFixed(1)} ${base + 4} L${c.toFixed(1)} ${(base - alt).toFixed(1)} L${(c + 2).toFixed(1)} ${base + 7} L${(c + 4).toFixed(1)} ${base}`
+      + ` Q${(c + 8).toFixed(1)} ${base - 6} ${(c + 12).toFixed(1)} ${base} L${(x + larg).toFixed(1)} ${base}`;
+  });
+  const total = dias.reduce((s, d) => s + d.n, 0);
+  const rotulo = `Cards respondidos nos últimos 14 dias: ${total}. ${dias.filter((d) => d.n).length} dias com estudo.`;
+  return `<svg class="tracado" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${rotulo}">
+    <path class="anima" d="${p}" style="--comp:6000" vector-effect="non-scaling-stroke"/>
+    ${dias.map((d, i) => `<rect x="${i * larg}" y="0" width="${larg}" height="${H}" fill="transparent" data-dica="${esc(d.rotulo)}: ${d.n} ${d.n === 1 ? "card" : "cards"}"/>`).join("")}
+  </svg>`;
+}
+const chaveDia = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function ultimosDias(porDia, n) {
+  const mapa = Object.fromEntries(porDia.map((d) => [String(d.dia).slice(0, 10), d]));
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - i);
+    const r = mapa[chaveDia(d)];
+    out.push({ d, k: chaveDia(d), n: N(r?.respostas), acertos: N(r?.acertos), rotulo: i === 0 ? "Hoje" : d.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" }) });
+  }
+  return out;
+}
+
+// Dica flutuante para gráficos (passar o mouse ou tocar)
+const dica = document.getElementById("dica");
+function ativarDicas(raiz) {
+  raiz.querySelectorAll("[data-dica]").forEach((el) => {
+    const mostrar = (ev) => {
+      dica.textContent = el.dataset.dica; dica.hidden = false;
+      const r = el.getBoundingClientRect();
+      const x = Math.min(window.innerWidth - dica.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - dica.offsetWidth / 2));
+      dica.style.left = x + "px"; dica.style.top = Math.max(8, r.top - dica.offsetHeight - 8) + "px";
+    };
+    el.addEventListener("mouseenter", mostrar);
+    el.addEventListener("touchstart", mostrar, { passive: true });
+    el.addEventListener("mouseleave", () => { dica.hidden = true; });
+  });
+}
+document.addEventListener("scroll", () => { dica.hidden = true; }, { passive: true });
+
+/* =====================================================================
+   ENTRADA (login, recuperar, definir senha)
+   ===================================================================== */
 function telaEntrada(modo = "login", mensagem = "") {
-  document.getElementById("topo").hidden = true;
+  mostrarMoldura(false);
   const titulos = {
-    login: ["Entrar", "Acesse seus flashcards para a residência."],
+    login: ["Entrar", "Seus flashcards para a residência, com revisão espaçada."],
     recuperar: ["Recuperar senha", "Enviaremos um link para você criar uma nova senha."],
     definir: ["Crie sua senha", "Defina a senha que você vai usar para entrar."],
   };
@@ -577,12 +1004,9 @@ function telaEntrada(modo = "login", mensagem = "") {
   tela.innerHTML = `
   <section class="entrada">
     <div class="entrada-caixa">
-      <div style="display:grid;gap:10px">
-        <span class="rotulo">${esc(CONFIG.NOME)} · Residência Médica</span>
-        <h1>${t}</h1>
-        <p>${sub}</p>
-      </div>
-      <form class="painel" id="form-entrada" novalidate>
+      <div class="marca"><span class="selo-marca">${ico("pulso")}</span><span>${esc(CONFIG.NOME)}</span></div>
+      <div><h1>${t}</h1><p class="sub">${sub}</p></div>
+      <form class="caixa" id="form-entrada" novalidate>
         ${mensagem}
         ${modo !== "definir" ? `
         <div class="campo"><label for="email">E-mail</label>
@@ -599,9 +1023,9 @@ function telaEntrada(modo = "login", mensagem = "") {
         ${modo === "recuperar" ? `<button type="button" class="btn-texto" id="ir-login">Voltar para o login</button>` : ""}
       </form>
       ${modo === "login" ? `
-      <div style="display:grid;gap:10px">
-        <div class="areas">${AREAS.map((a) => `<span>${a}</span>`).join("")}</div>
-        <p style="font-size:14px">Ainda não é assinante? ${CONFIG.CHECKOUT_URL ? `<a href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assine aqui</a>. Você recebe o acesso por e-mail logo após o pagamento.` : "Você recebe o acesso por e-mail logo após a compra."}</p>
+      <div style="display:grid;gap:12px">
+        <div class="chips-estaticos">${AREAS.map((a) => `<span>${a}</span>`).join("")}</div>
+        <p class="texto-2">Ainda não é assinante? ${CONFIG.CHECKOUT_URL ? `<a href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assine aqui</a>. O acesso chega por e-mail logo após o pagamento.` : "O acesso chega por e-mail logo após a compra."}</p>
       </div>` : ""}
     </div>
   </section>`;
@@ -624,7 +1048,7 @@ function telaEntrada(modo = "login", mensagem = "") {
         const email = document.getElementById("email").value.trim();
         if (!email) throw new Error("Informe o e-mail da sua assinatura.");
         await api.enviarRecuperacao(email);
-        telaEntrada("login", `<div class="msg msg-ok">Se o e-mail estiver cadastrado, você receberá um link em instantes. Confira também a caixa de spam.</div>`);
+        telaEntrada("login", `<div class="msg msg-ok">Se o e-mail estiver cadastrado, o link chega em instantes. Confira também a caixa de spam.</div>`);
       } else {
         const s1 = document.getElementById("senha").value, s2 = document.getElementById("senha2").value;
         if (s1.length < 8) throw new Error("A senha precisa ter pelo menos 8 caracteres.");
@@ -644,37 +1068,34 @@ function telaEntrada(modo = "login", mensagem = "") {
 async function aposEntrar() {
   try { await api.registrarDispositivo(); } catch { /* segue mesmo assim */ }
   assinatura = await api.assinatura().catch(() => null);
-  document.getElementById("topo").hidden = false;
   if (!assinatura?.acesso) return telaSemAcesso();
-  ir("decks");
+  ir("inicio");
   vigiarDispositivo();
 }
 
 function telaSemAcesso() {
-  document.getElementById("topo").hidden = false;
-  marcarNav("");
+  mostrarMoldura(true); marcarNav("");
   const st = assinatura?.status;
   const motivo = !assinatura ? "Não encontramos uma assinatura para este e-mail."
     : st === "reembolsada" ? "Sua compra foi reembolsada ou contestada, por isso o acesso foi encerrado."
     : st === "atrasada" ? "O pagamento da sua assinatura está em atraso. Regularize na Kiwify para voltar a estudar."
     : `Sua assinatura terminou em ${fmtData(assinatura.expira_em)}.`;
   tela.innerHTML = `
-  <section class="fim painel">
-    <span class="rotulo">Acesso indisponível</span>
+  <section class="fim caixa">
     <h2>Sua assinatura não está ativa</h2>
-    <p style="margin:0;max-width:52ch;color:var(--tinta-2)">${motivo} Assinou com outro e-mail? Saia e entre com ele.</p>
+    <p>${motivo} Assinou com outro e-mail? Saia e entre com ele.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
       ${CONFIG.CHECKOUT_URL ? `<a class="btn btn-primario" href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assinar agora</a>` : ""}
       <button class="btn" id="recarregar">Já paguei, verificar de novo</button>
       <button class="btn" id="sair">Sair</button>
     </div>
-    ${CONFIG.SUPORTE ? `<p style="font-size:14px;margin:0">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
+    ${CONFIG.SUPORTE ? `<p class="texto-2">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
   </section>`;
   document.getElementById("recarregar").onclick = aposEntrar;
   document.getElementById("sair").onclick = sair;
 }
 
-async function sair() { await api.sair(); sessao = null; telaEntrada("login"); }
+async function sair() { await api.sair(); sessao = null; cacheDecks = null; telaEntrada("login"); }
 
 let vigia = null;
 function vigiarDispositivo() {
@@ -689,146 +1110,326 @@ function vigiarDispositivo() {
   }, 120000);
 }
 
-// ---------- decks ----------
-async function telaDecks(filtro = "") {
-  tela.innerHTML = `<div class="vazio">Carregando seus decks…</div>`;
-  let lista;
-  try { lista = await api.decks(); } catch (e) { tela.innerHTML = `<div class="msg msg-erro">Não foi possível carregar os decks: ${esc(e.message)}</div>`; return; }
-
-  const grupos = {};
-  for (const d of lista) {
-    const partes = d.nome.split("::");
-    const area = partes[0];
-    (grupos[area] ??= []).push({ ...d, sub: partes.slice(1).join(" › ") || "Geral" });
-  }
-  const totalVenc = lista.reduce((s, d) => s + Number(d.vencidos), 0);
-  const totalNovos = lista.reduce((s, d) => s + Math.max(0, d.total - d.estudados), 0);
-  const totalEst = lista.reduce((s, d) => s + Number(d.estudados), 0);
-  const totalCards = lista.reduce((s, d) => s + Number(d.total), 0);
-
-  const linhaDeck = (d) => {
-    const novos = Math.max(0, d.total - d.estudados);
-    const pct = d.total ? Math.round((d.estudados / d.total) * 100) : 0;
-    return `<button class="deck" data-ids="${d.id}" data-nome="${esc(d.nome)}">
-      <span class="deck-nome"><strong>${esc(d.sub)}</strong><small class="num">${d.total} ${d.total === 1 ? "card" : "cards"} · ${pct}% visto</small></span>
-      <span class="contagens"><span class="c-venc ${d.vencidos ? "" : "zero"}" title="Revisões para hoje">${d.vencidos}</span><span class="c-novo ${novos ? "" : "zero"}" title="Cards novos">${novos}</span></span>
-      <span class="barra" aria-hidden="true"><i style="width:${pct}%"></i></span>
-    </button>`;
-  };
-
-  const termo = filtro.trim().toLowerCase();
-  const blocos = Object.entries(grupos).map(([area, ds]) => {
-    const visiveis = termo ? ds.filter((d) => d.nome.toLowerCase().includes(termo)) : ds;
-    if (!visiveis.length) return "";
-    const ids = ds.map((d) => d.id).join(",");
-    const venc = ds.reduce((s, d) => s + Number(d.vencidos), 0);
-    return `<section class="area painel">
-      <div class="area-cab">
-        <h2>${esc(area)}</h2>
-        <span class="num" style="font-size:13px;color:var(--tinta-2)">${ds.reduce((s, d) => s + Number(d.total), 0)} cards${venc ? ` · <span class="c-venc">${venc} p/ revisar</span>` : ""}</span>
-        <button class="btn" style="padding:6px 12px;font-size:14px" data-ids="${ids}" data-nome="${esc(area)} (tudo)">Estudar a área</button>
-      </div>
-      ${visiveis.map(linhaDeck).join("")}
-    </section>`;
-  }).join("");
-
-  tela.innerHTML = `
-  <div class="cab">
-    <div style="display:grid;gap:6px">
-      <span class="rotulo">Hoje</span>
-      <h1>${totalVenc ? `${totalVenc} revisões esperando você` : "Em dia com as revisões"}</h1>
-    </div>
-    <div class="resumo-dia">
-      <div><b class="c-venc">${totalVenc}</b><span class="rotulo">Revisar</span></div>
-      <div><b class="c-novo">${totalNovos}</b><span class="rotulo">Novos</span></div>
-      <div><b>${totalCards ? Math.round((totalEst / totalCards) * 100) : 0}%</b><span class="rotulo">Do banco visto</span></div>
-    </div>
-  </div>
-  <div class="campo busca"><label for="busca" class="rotulo">Buscar deck</label>
-    <input id="busca" type="search" placeholder="Ex.: cardiologia, neonatologia, trauma" value="${esc(filtro)}"></div>
-  ${blocos || `<div class="vazio painel">${lista.length ? "Nenhum deck encontrado com esse termo." : "Nenhum deck publicado ainda."}</div>`}`;
-
-  const busca = document.getElementById("busca");
-  busca.addEventListener("input", () => {
-    clearTimeout(busca._t);
-    busca._t = setTimeout(() => { const pos = busca.selectionStart; telaDecks(busca.value).then(() => { const b = document.getElementById("busca"); b.focus(); b.setSelectionRange(pos, pos); }); }, 250);
-  });
-  tela.querySelectorAll("[data-ids]").forEach((el) => el.addEventListener("click", () => ir("estudo", el.dataset.ids.split(","), el.dataset.nome)));
+/* =====================================================================
+   INÍCIO
+   ===================================================================== */
+let filtroArea = "Todas", saltoCardDia = 0;
+function primeiroNome() {
+  const meta = sessao?.user?.user_metadata?.nome;
+  const base = meta || (sessao?.user?.email ?? "").split("@")[0].split(/[._-]/)[0];
+  return base ? base.split(" ")[0].replace(/^./, (c) => c.toUpperCase()) : "";
+}
+function saudacao() {
+  const h = new Date().getHours();
+  return h < 5 ? "Boa noite" : h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
 }
 
-// ---------- estudo ----------
-async function telaEstudo(ids, nome) {
-  tela.innerHTML = `<div class="vazio">Montando sua sessão…</div>`;
-  let fila;
-  try { fila = await api.fila(ids, novosPorDia()); }
-  catch (e) {
+async function telaInicio() {
+  carregando();
+  let lista, porDia;
+  try { [lista, porDia] = await Promise.all([obterDecks(true), api.porDia(14).catch(() => [])]); }
+  catch (e) { return falha(e); }
+  const c = contar(lista);
+  const pendentes = c.novos + c.aprendendo + c.revisar;
+  const dias = ultimosDias(porDia, 14);
+  const hojeN = dias.at(-1).n;
+  const nome = primeiroNome();
+  const pct = c.total ? Math.round((c.estudados / c.total) * 100) : 0;
+
+  tela.innerHTML = `
+  <section class="saudacao">
+    <h1>${saudacao()}${nome ? `, ${esc(nome)}` : ""}</h1>
+    <p>${pendentes ? (hojeN ? `Você já respondeu ${hojeN} ${hojeN === 1 ? "card" : "cards"} hoje. Faltam ${pendentes}.` : `${pendentes} ${pendentes === 1 ? "card espera" : "cards esperam"} por você hoje.`) : "Tudo em dia por hoje. Volte amanhã para as próximas revisões."}</p>
+  </section>
+
+  <section class="hoje" aria-label="Estudo de hoje">
+    <div class="hoje-in">
+      <div class="hoje-topo"><strong>${ico("pulso", "ico-p")} Hoje</strong><span>últimos 14 dias</span></div>
+      <div class="contagens-grandes">
+        <div><b class="c-novo ${c.novos ? "" : "zero"}">${c.novos}</b><span>Novos</span></div>
+        <div><b class="c-apr ${c.aprendendo ? "" : "zero"}">${c.aprendendo}</b><span>Aprendendo</span></div>
+        <div><b class="c-rev ${c.revisar ? "" : "zero"}">${c.revisar}</b><span>Revisar</span></div>
+      </div>
+      ${tracadoEcg(dias)}
+      <button class="btn btn-primario btn-largo" id="estudar-tudo" ${pendentes ? "" : "disabled"}>${ico("play", "ico-p")} ${pendentes ? "Estudar agora" : "Nada para hoje"}</button>
+    </div>
+  </section>
+
+  <form class="busca-linha" id="form-busca" role="search">
+    <label class="busca-campo"><span class="sr">Buscar nos cards</span>${ico("busca")}
+      <input id="busca-inicio" type="search" placeholder="Buscar doença, sinal, escore…" enterkeyhint="search"></label>
+    <button class="btn-ico" type="button" id="ver-favoritos" aria-label="Ver favoritos">${ico("coracao")}</button>
+  </form>
+
+  <section class="caixa card-dia" id="card-dia" aria-live="polite"><div class="vazio" style="padding:12px">Carregando o card do dia…</div></section>
+
+  <div class="chips" role="group" aria-label="Filtrar por área">
+    ${["Todas", ...agrupar(lista).map(([a]) => a)].map((a) => `<button class="chip" type="button" data-area="${esc(a)}" aria-pressed="${a === filtroArea}">${esc(a === "Todas" ? "Todas as áreas" : a)}</button>`).join("")}
+  </div>
+
+  <section class="caixa progresso-geral" id="progresso"></section>
+
+  <section class="sec">
+    <div class="sec-cab"><h2>Explorar</h2><span class="contador" id="qtd-decks"></span></div>
+    <div class="grade-decks" id="grade"></div>
+  </section>`;
+
+  const todosIds = lista.map((d) => d.id);
+  document.getElementById("estudar-tudo").onclick = () => ir("estudo", todosIds, "Todos os decks");
+  document.getElementById("form-busca").onsubmit = (e) => { e.preventDefault(); ir("busca", document.getElementById("busca-inicio").value, false); };
+  document.getElementById("ver-favoritos").onclick = () => ir("busca", "", true);
+  tela.querySelectorAll("[data-area]").forEach((b) => b.addEventListener("click", () => {
+    filtroArea = b.dataset.area;
+    tela.querySelectorAll("[data-area]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    desenharExplorar(lista);
+  }));
+  ativarDicas(tela);
+  desenharExplorar(lista);
+  desenharCardDoDia();
+}
+
+function desenharExplorar(lista) {
+  const visiveis = filtroArea === "Todas" ? lista : lista.filter((d) => d.nome.split("::")[0] === filtroArea);
+  const c = contar(visiveis);
+  const pct = c.total ? Math.round((c.estudados / c.total) * 100) : 0;
+  const pctMad = c.total ? (c.maduros / c.total) * 100 : 0;
+  document.getElementById("progresso").innerHTML = `
+    <div class="linha"><strong>${filtroArea === "Todas" ? "Seu progresso" : esc(filtroArea)}</strong><span class="pct">${pct}%</span></div>
+    <div class="barra" role="img" aria-label="${c.estudados} de ${c.total} cards vistos, ${c.maduros} maduros">
+      <i style="width:${pctMad}%;background:var(--maduro)"></i><i style="width:${Math.max(0, pct - pctMad)}%;background:var(--pulso)"></i></div>
+    <small>${c.estudados} de ${c.total} cards vistos · ${c.maduros} maduros (intervalo de 21 dias ou mais)</small>`;
+  document.getElementById("qtd-decks").textContent = `${visiveis.length} ${visiveis.length === 1 ? "deck" : "decks"}`;
+  const grade = document.getElementById("grade");
+  grade.innerHTML = visiveis.map((d) => {
+    const k = contar([d]);
+    return `<button class="caixa tile" data-deck="${esc(d.id)}">
+      <h3>${esc(folhaDoNome(d.nome))}</h3>
+      <span class="area-nome">${esc(d.nome.includes("::") ? d.nome.split("::").slice(0, -1).join(" › ") : `${d.total} ${N(d.total) === 1 ? "card" : "cards"}`)}</span>
+      <span></span>
+      <span class="tile-pe">
+        <span class="mini-contagens" aria-label="${k.novos} novos, ${k.aprendendo} aprendendo, ${k.revisar} para revisar">${num(k.novos, "c-novo")}${num(k.aprendendo, "c-apr")}${num(k.revisar, "c-rev")}</span>
+        ${ico(iconeDe(d.nome))}
+      </span>
+    </button>`;
+  }).join("") || `<div class="vazio caixa" style="grid-column:1/-1">Nenhum deck publicado ainda.</div>`;
+  grade.querySelectorAll("[data-deck]").forEach((b) => b.addEventListener("click", () => ir("deck", { ids: [b.dataset.deck] })));
+}
+
+async function desenharCardDoDia() {
+  const caixa = document.getElementById("card-dia");
+  if (!caixa) return;
+  let c;
+  try { c = await api.cardDoDia(saltoCardDia); } catch { c = null; }
+  if (!document.body.contains(caixa)) return;
+  if (!c) { caixa.innerHTML = `<p class="texto-2">O card do dia aparece aqui assim que houver decks publicados.</p>`; return; }
+  const resposta = String(c.verso).split(/<hr[^>]*id=["']?answer["']?[^>]*>/i).at(-1);
+  caixa.innerHTML = `
+    <div class="card-dia-topo">
+      <span class="marcador">${ico("pulso", "ico-p")}</span>
+      <strong>Card do dia</strong>
+      <button class="btn-ico" id="outro-card" aria-label="Mostrar outro card">${ico("embaralhar", "ico-p")}</button>
+    </div>
+    <div class="pergunta">${esc(textoPuro(c.frente))}</div>
+    <div class="resposta" id="resposta-dia" hidden>${resposta}</div>
+    <div class="rodape"><span class="etiqueta">${esc(caminho(c.deck))}</span><button class="btn-texto" id="ver-resposta">Ver resposta</button></div>`;
+  document.getElementById("outro-card").onclick = () => { saltoCardDia++; desenharCardDoDia(); };
+  document.getElementById("ver-resposta").onclick = (e) => {
+    const r = document.getElementById("resposta-dia"); r.hidden = !r.hidden;
+    e.currentTarget.textContent = r.hidden ? "Ver resposta" : "Esconder resposta";
+  };
+}
+
+/* =====================================================================
+   DECKS (árvore no estilo Anki)
+   ===================================================================== */
+let abertos = new Set(guardar.ler("pm_abertos", AREAS));
+async function telaDecks() {
+  carregando("Carregando seus decks…");
+  let lista;
+  try { lista = await obterDecks(true); } catch (e) { return falha(e); }
+  const grupos = agrupar(lista);
+  const linhaNo = (d, nivel, nome, ids, temFilhos, aberto) => {
+    const k = contar(d);
+    return `<div class="no ${nivel === 0 ? "no-area" : "no-sub"}">
+      <span style="display:flex;align-items:center;gap:4px;min-width:0">
+        ${temFilhos ? `<button class="expandir" data-alternar="${esc(nome)}" aria-expanded="${aberto}" aria-label="${aberto ? "Recolher" : "Expandir"} ${esc(nome)}">${ico("seta")}</button>` : ""}
+        <button class="no-nome" data-abrir="${esc(ids.join(","))}" data-nome="${esc(nome)}">${nivel === 0 ? ico(iconeDe(nome), "ico-deck") : ""}<span class="txt">${esc(nivel === 0 ? nome : folhaDoNome(nome))}</span></button>
+      </span>
+      <span class="n">${num(k.novos, "c-novo")}</span><span class="n">${num(k.aprendendo, "c-apr")}</span><span class="n">${num(k.revisar, "c-rev")}</span>
+    </div>`;
+  };
+  const corpo = grupos.map(([area, ds]) => {
+    const aberto = abertos.has(area);
+    const subs = ds.filter((d) => d.nome.includes("::"));
+    return linhaNo(ds, 0, area, ds.map((d) => d.id), subs.length > 0, aberto)
+      + (aberto ? subs.map((d) => linhaNo([d], 1, d.nome, [d.id], false, false)).join("") : "");
+  }).join("");
+  const c = contar(lista);
+
+  tela.innerHTML = `
+  <div class="titulo-pag"><div><h1>Decks</h1><p>${c.total} cards em ${lista.length} ${lista.length === 1 ? "deck" : "decks"}</p></div>
+    <button class="btn btn-primario" id="estudar-tudo" ${c.novos + c.aprendendo + c.revisar ? "" : "disabled"}>${ico("play", "ico-p")} Estudar tudo</button></div>
+  <section class="caixa arvore">
+    <div class="arvore-cab"><span>Deck</span><span>Novos</span><span>Aprend.</span><span>Revisar</span></div>
+    ${corpo || `<div class="vazio">Nenhum deck publicado ainda.</div>`}
+  </section>
+  <div class="legenda-anki"><span><i style="background:var(--novo)"></i>Novos: ainda não vistos (até ${novosPorDia()} por dia)</span><span><i style="background:var(--aprendendo)"></i>Aprendendo: voltam em minutos</span><span><i style="background:var(--revisar)"></i>Revisar: vencem hoje</span></div>`;
+
+  document.getElementById("estudar-tudo").onclick = () => ir("estudo", lista.map((d) => d.id), "Todos os decks");
+  tela.querySelectorAll("[data-alternar]").forEach((b) => b.addEventListener("click", () => {
+    const a = b.dataset.alternar; if (abertos.has(a)) abertos.delete(a); else abertos.add(a);
+    guardar.gravar("pm_abertos", [...abertos]); telaDecks();
+  }));
+  tela.querySelectorAll("[data-abrir]").forEach((b) => b.addEventListener("click", () => ir("deck", { ids: b.dataset.abrir.split(","), nome: b.dataset.nome })));
+}
+
+/* ---------- visão geral de um deck (tela "Estudar agora" do Anki) ---------- */
+async function telaDeck({ ids, nome }) {
+  carregando();
+  let lista;
+  try { lista = await obterDecks(); } catch (e) { return falha(e); }
+  const sel = lista.filter((d) => ids.includes(d.id));
+  if (!sel.length) return ir("decks");
+  const titulo = nome ?? sel[0].nome;
+  const c = contar(sel);
+  const pendentes = c.novos + c.aprendendo + c.revisar;
+  const area = titulo.split("::")[0];
+  const subs = sel.length > 1 ? sel : [];
+
+  tela.innerHTML = `
+  <button class="voltar" id="voltar">${ico("voltar", "ico-p")} Voltar</button>
+  <div class="deck-cab"><span class="ic">${ico(iconeDe(titulo))}</span>
+    <div><h1>${esc(folhaDoNome(titulo))}</h1><p>${titulo.includes("::") ? esc(area) : `${sel.length} ${sel.length === 1 ? "deck" : "decks"}`}</p></div></div>
+  <section class="caixa visao">
+    <div class="contagens-grandes">
+      <div><b class="c-novo ${c.novos ? "" : "zero"}">${c.novos}</b><span>Novos</span></div>
+      <div><b class="c-apr ${c.aprendendo ? "" : "zero"}">${c.aprendendo}</b><span>Aprendendo</span></div>
+      <div><b class="c-rev ${c.revisar ? "" : "zero"}">${c.revisar}</b><span>Revisar</span></div>
+    </div>
+    <button class="btn btn-primario btn-largo" id="estudar" ${pendentes ? "" : "disabled"}>${ico("play", "ico-p")} ${pendentes ? "Estudar agora" : "Parabéns, deck em dia"}</button>
+    <p class="dica">${pendentes ? `Limite de ${novosPorDia()} cards novos por dia. Ajuste em Perfil.` : "Novos cards e revisões voltam a aparecer amanhã."}</p>
+  </section>
+  <div class="fatos">
+    <div class="caixa fato"><b>${c.total}</b><span>cards no total</span></div>
+    <div class="caixa fato"><b>${c.total ? Math.round((c.estudados / c.total) * 100) : 0}%</b><span>já vistos</span></div>
+    <div class="caixa fato"><b class="c-rev">${c.maduros}</b><span>maduros</span></div>
+  </div>
+  ${subs.length ? `<section class="sec"><div class="sec-cab"><h2>Subdecks</h2></div><div class="grade-decks">${subs.map((d) => {
+    const k = contar([d]);
+    return `<button class="caixa tile" data-deck="${esc(d.id)}"><h3>${esc(folhaDoNome(d.nome))}</h3><span class="area-nome">${d.total} ${N(d.total) === 1 ? "card" : "cards"}</span><span></span>
+      <span class="tile-pe"><span class="mini-contagens">${num(k.novos, "c-novo")}${num(k.aprendendo, "c-apr")}${num(k.revisar, "c-rev")}</span>${ico(iconeDe(d.nome))}</span></button>`;
+  }).join("")}</div></section>` : ""}`;
+
+  document.getElementById("voltar").onclick = () => ir(telaAnterior || "decks");
+  document.getElementById("estudar").onclick = () => ir("estudo", ids, titulo);
+  tela.querySelectorAll("[data-deck]").forEach((b) => b.addEventListener("click", () => ir("deck", { ids: [b.dataset.deck] })));
+}
+// Lembra de onde o aluno veio, para os botões "Voltar" e "Encerrar sessão"
+let telaAnterior = "decks", origemEstudo = { nome: "inicio", args: [] }, argsAtuais = [];
+const _ir = ir;
+ir = function (nome, ...args) {
+  if (nome === "deck" && telaAtual !== "deck") telaAnterior = telaAtual;
+  if (nome === "estudo") origemEstudo = { nome: telaAtual, args: argsAtuais };
+  argsAtuais = args;
+  return _ir(nome, ...args);
+};
+
+/* =====================================================================
+   ESTUDO (fluxo do Anki)
+   ===================================================================== */
+async function telaEstudo(ids, nome, modo = "normal") {
+  carregando("Montando sua sessão…");
+  let fila, favs;
+  try {
+    [fila, favs] = await Promise.all([modo === "favoritos" ? api.filaFavoritos() : api.fila(ids, novosPorDia()), api.favoritosIds().catch(() => new Set())]);
+  } catch (e) {
     if (/acesso|permission|denied/i.test(e.message)) { assinatura = await api.assinatura().catch(() => null); if (!assinatura?.acesso) return telaSemAcesso(); }
-    tela.innerHTML = `<div class="msg msg-erro">Não foi possível carregar os cards: ${esc(e.message)}</div>`; return;
+    return falha(e);
   }
-  // Revisões primeiro (mais atrasadas antes), depois novos
+  // Ordem do Anki: aprendendo, revisões e novos intercalados no fim
   fila.sort((a, b) => (a.novo === b.novo ? 0 : a.novo ? 1 : -1));
-  const total = fila.length;
   let feitos = 0, acertos = 0, virado = false, atual = null, ocupado = false;
-  const nomeCurto = nome.split("::").join(" › ");
+  const origem = origemEstudo;
+  const voltar = () => { cacheDecks = null; ir(origem.nome === "estudo" ? "inicio" : origem.nome, ...origem.args); };
+  cacheDecks = null;
 
   const marcaDagua = (() => {
     const txt = esc(sessao?.user?.email ?? "");
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="260" height="120"><text x="0" y="70" transform="rotate(-18 130 60)" font-family="monospace" font-size="13" fill="currentColor">${txt}</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="260" height="120"><text x="0" y="70" transform="rotate(-18 130 60)" font-family="sans-serif" font-size="13" fill="currentColor">${txt}</text></svg>`;
     return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
   })();
+  const tipoDe = (c) => c.novo ? "novo" : c.estado === "aprendendo" ? "apr" : "rev";
 
-  function contagem() {
-    const n = fila.filter((c) => c.novo).length;
-    const a = fila.filter((c) => !c.novo && c.estado === "aprendendo").length;
-    const r = fila.length - n - a;
-    return `<span class="contagens" aria-label="Restantes"><span class="c-novo" title="Novos">${n}</span><span class="c-apr" title="Aprendendo">${a}</span><span class="c-venc" title="Revisão">${r}</span></span>`;
+  function restantes() {
+    const n = fila.filter((c) => tipoDe(c) === "novo").length;
+    const a = fila.filter((c) => tipoDe(c) === "apr").length;
+    const r = fila.filter((c) => tipoDe(c) === "rev").length;
+    const t = atual ? tipoDe(atual) : "";
+    return `<div class="restantes" aria-label="${n} novos, ${a} aprendendo, ${r} para revisar">
+      <span class="c-novo ${t === "novo" ? "atual" : ""} ${n ? "" : "zero"}">${n}</span>
+      <span class="c-apr ${t === "apr" ? "atual" : ""} ${a ? "" : "zero"}">${a}</span>
+      <span class="c-rev ${t === "rev" ? "atual" : ""} ${r ? "" : "zero"}">${r}</span></div>`;
   }
 
   function desenhar() {
     if (!fila.length) {
       const pct = feitos ? Math.round((acertos / feitos) * 100) : 0;
       tela.innerHTML = `
-      <section class="estudo"><div class="fim painel">
-        <span class="rotulo">Sessão concluída</span>
-        <h2>${feitos ? "Parabéns, deck em dia" : "Nada para estudar agora"}</h2>
-        <p style="margin:0;color:var(--tinta-2);max-width:48ch">${feitos
-          ? `Você respondeu <b class="num">${feitos}</b> cards com <b class="num">${pct}%</b> de acerto. Volte amanhã para as próximas revisões.`
-          : `Você já viu as revisões de hoje e atingiu o limite de ${novosPorDia()} cards novos por dia neste deck. Ajuste o limite em Conta.`}</p>
-        <button class="btn btn-primario" id="voltar">Voltar aos decks</button>
+      <section class="estudo"><div class="fim caixa">
+        <span class="selo-marca" style="width:56px;height:56px;border-radius:16px;background:var(--pulso-suave);color:var(--pulso);display:grid;place-items:center">${ico("pulso")}</span>
+        <h2>${feitos ? "Sessão concluída" : "Nada para estudar agora"}</h2>
+        <p>${feitos
+          ? `Você respondeu ${feitos} ${feitos === 1 ? "card" : "cards"} com ${pct}% de acerto. As próximas revisões aparecem quando vencerem.`
+          : `Você já fez as revisões de hoje e chegou ao limite de ${novosPorDia()} cards novos por dia. Dá para mudar o limite em Perfil.`}</p>
+        <button class="btn btn-primario" id="voltar">Voltar</button>
       </div></section>`;
-      document.getElementById("voltar").onclick = () => ir("decks");
+      document.getElementById("voltar").onclick = () => voltar();
       return;
     }
     atual = fila[0];
-    const tipo = atual.novo ? `<span class="c-novo">Novo</span>` : atual.estado === "aprendendo" ? `<span class="c-apr">Aprendendo</span>` : `<span class="c-venc">Revisão</span>`;
+    const fav = favs.has(atual.card_id);
+    const tipo = { novo: `<span class="c-novo">Novo</span>`, apr: `<span class="c-apr">Aprendendo</span>`, rev: `<span class="c-rev">Revisão</span>` }[tipoDe(atual)];
     tela.innerHTML = `
     <section class="estudo">
       <div class="estudo-topo">
-        <button class="btn" id="voltar" style="padding:6px 12px">← Decks</button>
-        <span class="titulo">${esc(nomeCurto)}</span>
-        ${contagem()}
+        <button class="btn-ico" id="voltar" aria-label="Encerrar sessão">${ico("fechar")}</button>
+        <span class="titulo">${esc(caminho(nome))}</span>
+        <button class="btn-ico" id="favoritar" aria-pressed="${fav}" aria-label="${fav ? "Remover dos favoritos" : "Adicionar aos favoritos"}">${ico("coracao")}</button>
       </div>
-      <div class="progresso-sessao" aria-hidden="true"><i style="width:${total ? Math.min(100, (feitos / (feitos + fila.length)) * 100) : 0}%"></i></div>
-      <article class="card painel" id="card" aria-live="polite">
+      ${restantes()}
+      <div class="prog-sessao" aria-hidden="true"><i style="width:${Math.min(100, (feitos / (feitos + fila.length)) * 100)}%"></i></div>
+      <article class="caixa card" id="card" aria-live="polite">
         <div class="marca-dagua" style="background-image:${marcaDagua};color:var(--tinta)"></div>
-        <span class="tipo-card rotulo">${tipo}</span>
+        <span class="tipo-card">${tipo}</span>
         <div class="card-conteudo">${virado ? atual.verso : atual.frente}</div>
       </article>
       <div class="acoes">
         ${virado ? `
         <div class="respostas" role="group" aria-label="Como foi?">
-          ${[[1, "Errei"], [2, "Difícil"], [3, "Bom"], [4, "Fácil"]].map(([n, t]) =>
-            `<button class="resp" data-nota="${n}">${t}<small>${SRS.rotulo(atual, n)}</small></button>`).join("")}
+          ${[[1, "Novamente"], [2, "Difícil"], [3, "Bom"], [4, "Fácil"]].map(([n, t]) =>
+            `<button class="resp" data-nota="${n}"><small>${SRS.rotulo(atual, n)}</small>${t}</button>`).join("")}
         </div>
-        <p class="atalhos">Atalhos: <kbd>1</kbd> Errei · <kbd>2</kbd> Difícil · <kbd>3</kbd> Bom · <kbd>4</kbd> Fácil</p>` : `
+        <p class="atalhos"><kbd>1</kbd> Novamente · <kbd>2</kbd> Difícil · <kbd>3</kbd> ou <kbd>Espaço</kbd> Bom · <kbd>4</kbd> Fácil</p>` : `
         <button class="btn btn-primario mostrar" id="mostrar">Mostrar resposta</button>
-        <p class="atalhos">Atalho: <kbd>Espaço</kbd></p>`}
+        <p class="atalhos"><kbd>Espaço</kbd> mostra a resposta</p>`}
       </div>
     </section>`;
-    document.getElementById("voltar").onclick = () => ir("decks");
+    document.getElementById("voltar").onclick = () => voltar();
+    document.getElementById("favoritar").onclick = alternarFav;
     document.getElementById("card").addEventListener("contextmenu", (e) => e.preventDefault());
     document.getElementById("mostrar")?.addEventListener("click", virar);
     tela.querySelectorAll(".resp").forEach((b) => b.addEventListener("click", () => responder(Number(b.dataset.nota))));
+  }
+
+  async function alternarFav() {
+    const id = atual.card_id;
+    try {
+      const ativo = await api.alternarFavorito(id);
+      if (ativo) favs.add(id); else favs.delete(id);
+      toast(ativo ? "Adicionado aos favoritos." : "Removido dos favoritos.");
+      const b = document.getElementById("favoritar");
+      b.setAttribute("aria-pressed", ativo); b.setAttribute("aria-label", ativo ? "Remover dos favoritos" : "Adicionar aos favoritos");
+    } catch { toast("Não foi possível salvar o favorito."); }
   }
 
   function virar() { virado = true; desenhar(); document.querySelector(".resp[data-nota='3']")?.focus({ preventScroll: true }); }
@@ -845,10 +1446,8 @@ async function telaEstudo(ids, nome) {
       toast("Não foi possível salvar a resposta. Verifique sua conexão.");
       ocupado = false; return;
     }
-    // Cards em aprendizado voltam ainda nesta sessão
-    if (r.estado === "aprendendo") {
-      fila.splice(Math.min(fila.length, nota === 1 ? 3 : 6), 0, { ...card, ...r, novo: false });
-    }
+    // Cards em aprendizado voltam ainda nesta sessão, como no Anki
+    if (r.estado === "aprendendo") fila.splice(Math.min(fila.length, nota === 1 ? 3 : 6), 0, { ...card, ...r, novo: false });
     virado = false; ocupado = false;
     desenhar();
   }
@@ -858,131 +1457,267 @@ async function telaEstudo(ids, nome) {
     if (e.target.matches("input, textarea")) return;
     if (!virado && (e.code === "Space" || e.key === "Enter")) { e.preventDefault(); virar(); }
     else if (virado && ["1", "2", "3", "4"].includes(e.key)) { e.preventDefault(); responder(Number(e.key)); }
-    else if (virado && e.code === "Space") { e.preventDefault(); responder(3); }
+    else if (virado && (e.code === "Space" || e.key === "Enter")) { e.preventDefault(); responder(3); }
+    else if (e.key === "Escape") voltar();
   }
   document.addEventListener("keydown", teclas);
   desenhar();
 }
 
-// ---------- estatísticas ----------
+/* =====================================================================
+   BUSCA (o "Navegador" do Anki)
+   ===================================================================== */
+async function telaBusca(termoInicial = "", soFavInicial = false) {
+  let termo = termoInicial, soFav = soFavInicial;
+  tela.innerHTML = `
+  <div class="titulo-pag"><div><h1>Buscar</h1><p>Encontre qualquer card pelo texto, pelo deck ou pela área.</p></div></div>
+  <form class="busca-linha" id="form-busca" role="search" style="grid-template-columns:1fr">
+    <label class="busca-campo"><span class="sr">Buscar nos cards</span>${ico("busca")}
+      <input id="termo" type="search" placeholder="Ex.: Glasgow, pré-eclâmpsia, Child-Pugh" value="${esc(termo)}" enterkeyhint="search"></label>
+  </form>
+  <div class="chips" role="group" aria-label="Filtro" style="margin-top:12px">
+    <button class="chip" type="button" data-fav="0" aria-pressed="${!soFav}">Todos os cards</button>
+    <button class="chip" type="button" data-fav="1" aria-pressed="${soFav}">Favoritos</button>
+  </div>
+  <section class="caixa resultados" id="resultados"><div class="vazio">Buscando…</div></section>`;
+
+  const caixa = document.getElementById("resultados");
+  const input = document.getElementById("termo");
+  const estadoDe = (r) => {
+    if (!r.estado) return `<span class="estado c-novo">Novo</span>`;
+    if (r.estado === "aprendendo") return `<span class="estado c-apr">Aprendendo</span>`;
+    const dias = Math.round((new Date(r.vencimento) - Date.now()) / 86400000);
+    return `<span class="estado c-rev">${r.intervalo >= 21 ? "Maduro" : "Jovem"} · ${dias <= 0 ? "revisar hoje" : `revisão em ${dias} ${dias === 1 ? "dia" : "dias"}`}</span>`;
+  };
+  async function buscar() {
+    caixa.innerHTML = `<div class="vazio">Buscando…</div>`;
+    let lista;
+    try { lista = await api.buscar(termo.trim(), soFav); } catch (e) { caixa.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; return; }
+    if (!lista.length) {
+      caixa.innerHTML = `<div class="vazio">${soFav ? (termo ? "Nenhum favorito com esse termo." : "Você ainda não tem favoritos. Toque no coração durante o estudo para guardar um card aqui.") : "Nenhum card encontrado. Tente outra palavra ou o nome de um deck."}</div>`;
+      return;
+    }
+    caixa.innerHTML = (soFav ? `<div style="padding:14px 16px;border-bottom:1px solid var(--linha);display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="texto-2">${lista.length} ${lista.length === 1 ? "favorito" : "favoritos"}</span><button class="btn btn-primario" id="estudar-favs">${ico("play", "ico-p")} Estudar favoritos</button></div>` : "")
+      + lista.map((r, i) => `
+      <div class="resultado">
+        <button class="abrir" data-i="${i}"><span class="caminho">${esc(caminho(r.deck))}</span><span class="frente">${esc(textoPuro(r.frente))}</span>${estadoDe(r)}</button>
+        <button class="btn-ico" data-fav-id="${esc(r.card_id)}" aria-pressed="${!!r.favorito}" aria-label="${r.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}">${ico("coracao")}</button>
+      </div>`).join("");
+    document.getElementById("estudar-favs")?.addEventListener("click", () => ir("estudo", [], "Favoritos", "favoritos"));
+    caixa.querySelectorAll("[data-i]").forEach((b) => b.addEventListener("click", () => abrirFolha(lista[+b.dataset.i])));
+    caixa.querySelectorAll("[data-fav-id]").forEach((b) => b.addEventListener("click", async () => {
+      try {
+        const ativo = await api.alternarFavorito(b.dataset.favId);
+        b.setAttribute("aria-pressed", ativo); toast(ativo ? "Adicionado aos favoritos." : "Removido dos favoritos.");
+        const item = lista.find((x) => x.card_id === b.dataset.favId); if (item) item.favorito = ativo;
+      } catch { toast("Não foi possível salvar o favorito."); }
+    }));
+  }
+  function abrirFolha(r) {
+    const fundo = document.createElement("div");
+    fundo.className = "folha-fundo";
+    fundo.innerHTML = `<div class="folha" role="dialog" aria-modal="true" aria-label="Card">
+      <div class="folha-topo"><span>${esc(caminho(r.deck))}</span><button class="btn-ico" id="fechar-folha" aria-label="Fechar">${ico("fechar")}</button></div>
+      <article class="caixa card" oncontextmenu="return false"><div class="card-conteudo">${r.verso}</div></article>
+      ${estadoDe(r)}
+    </div>`;
+    document.body.appendChild(fundo);
+    const fechar = () => { fundo.remove(); document.removeEventListener("keydown", tecla); };
+    const tecla = (e) => { if (e.key === "Escape") fechar(); };
+    document.addEventListener("keydown", tecla);
+    fundo.addEventListener("click", (e) => { if (e.target === fundo) fechar(); });
+    fundo.querySelector("#fechar-folha").onclick = fechar;
+    fundo.querySelector("#fechar-folha").focus();
+  }
+  document.getElementById("form-busca").onsubmit = (e) => { e.preventDefault(); input.blur(); };
+  input.addEventListener("input", () => { clearTimeout(input._t); input._t = setTimeout(() => { termo = input.value; buscar(); }, 300); });
+  tela.querySelectorAll("[data-fav]").forEach((b) => b.addEventListener("click", () => {
+    soFav = b.dataset.fav === "1";
+    tela.querySelectorAll("[data-fav]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    buscar();
+  }));
+  if (!termo && !soFav) input.focus({ preventScroll: true });
+  buscar();
+}
+
+/* =====================================================================
+   ESTATÍSTICAS (calendário, previsão e situação dos cards, como no Anki)
+   ===================================================================== */
 async function telaStats() {
-  tela.innerHTML = `<div class="vazio">Calculando…</div>`;
-  let porDeck, porDia;
-  try { [porDeck, porDia] = await Promise.all([api.estatisticas(), api.porDia()]); }
-  catch (e) { tela.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; return; }
+  carregando("Calculando…");
+  let porDeck, porDia, previsao, estados;
+  try { [porDeck, porDia, previsao, estados] = await Promise.all([api.estatisticas(), api.porDia(119), api.previsao(), api.estados()]); }
+  catch (e) { return falha(e); }
 
-  const chave = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const mapa = Object.fromEntries(porDia.map((d) => [String(d.dia).slice(0, 10), d]));
-  const dias = [];
-  for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dias.push({ d, k: chave(d), ...(mapa[chave(d)] ?? { respostas: 0, acertos: 0 }) }); }
-  const total = dias.reduce((s, d) => s + Number(d.respostas), 0);
-  const certos = dias.reduce((s, d) => s + Number(d.acertos), 0);
-  const hoje = Number(dias.at(-1).respostas);
-  let seq = 0; for (let i = dias.length - 1; i >= 0; i--) { if (Number(dias[i].respostas) > 0) seq++; else if (i !== dias.length - 1) break; }
+  const dias = ultimosDias(porDia, 119);
+  const ult30 = dias.slice(-30);
+  const total30 = ult30.reduce((s, d) => s + d.n, 0);
+  const certos30 = ult30.reduce((s, d) => s + d.acertos, 0);
+  const hoje = dias.at(-1);
+  let seq = 0; for (let i = dias.length - 1; i >= 0; i--) { if (dias[i].n > 0) seq++; else if (i !== dias.length - 1) break; }
+  const e = { novos: N(estados.novos), aprendendo: N(estados.aprendendo), jovens: N(estados.jovens), maduros: N(estados.maduros) };
 
-  // Gráfico de barras: respostas por dia
-  const W = 720, H = 200, mL = 34, mB = 26, mT = 10;
-  const max = Math.max(10, ...dias.map((d) => Number(d.respostas)));
-  const passo = max <= 20 ? 5 : max <= 60 ? 10 : max <= 150 ? 25 : 50;
-  const topo = Math.ceil(max / passo) * passo;
-  const y = (v) => mT + (H - mT - mB) * (1 - v / topo);
-  const bw = (W - mL) / dias.length;
+  // Calendário (heatmap): colunas = semanas, linhas = dias da semana
+  const inicio = new Date(dias[0].d); inicio.setDate(inicio.getDate() - inicio.getDay());
+  const mapa = Object.fromEntries(dias.map((d) => [d.k, d]));
+  const cel = 13, gap = 3, semanas = Math.ceil((dias.length + dias[0].d.getDay()) / 7);
+  const maxDia = Math.max(1, ...dias.map((d) => d.n));
+  const nivel = (n) => !n ? 0 : n <= maxDia * 0.25 ? 1 : n <= maxDia * 0.5 ? 2 : n <= maxDia * 0.75 ? 3 : 4;
+  const corNivel = ["var(--superficie-2)", "color-mix(in srgb, var(--pulso) 28%, var(--superficie))", "color-mix(in srgb, var(--pulso) 52%, var(--superficie))", "color-mix(in srgb, var(--pulso) 76%, var(--superficie))", "var(--pulso)"];
+  let celulas = "", meses = "";
+  for (let s = 0; s < semanas; s++) {
+    for (let w = 0; w < 7; w++) {
+      const d = new Date(inicio); d.setDate(inicio.getDate() + s * 7 + w);
+      const item = mapa[chaveDia(d)];
+      if (!item) continue;
+      celulas += `<rect class="cel" x="${30 + s * (cel + gap)}" y="${18 + w * (cel + gap)}" width="${cel}" height="${cel}" rx="3" fill="${corNivel[nivel(item.n)]}" data-dica="${esc(d.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" }))}: ${item.n} ${item.n === 1 ? "card" : "cards"}"/>`;
+      if (w === 0 && d.getDate() <= 7) meses += `<text x="${30 + s * (cel + gap)}" y="11">${d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</text>`;
+    }
+  }
+  const diasSemana = ["", "seg", "", "qua", "", "sex", ""].map((t, w) => t ? `<text x="0" y="${18 + w * (cel + gap) + 10}">${t}</text>` : "").join("");
+  const largCal = 30 + semanas * (cel + gap);
+
+  // Previsão: revisões que vencem em cada um dos próximos 30 dias
+  const prevMapa = Object.fromEntries(previsao.map((p) => [String(p.dia).slice(0, 10), N(p.quantidade)]));
+  const prox = [];
+  for (let i = 0; i < 30; i++) { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + i); prox.push({ d, n: prevMapa[chaveDia(d)] ?? 0 }); }
+  const W = 640, H = 170, mL = 30, mB = 24, mT = 8;
+  const maxP = Math.max(4, ...prox.map((p) => p.n));
+  const passo = maxP <= 8 ? 2 : maxP <= 20 ? 5 : maxP <= 60 ? 10 : maxP <= 150 ? 25 : 50;
+  const topoP = Math.ceil(maxP / passo) * passo;
+  const y = (v) => mT + (H - mT - mB) * (1 - v / topoP);
+  const bw = (W - mL) / prox.length;
   let grade = "";
-  for (let v = 0; v <= topo; v += passo) grade += `<line x1="${mL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--linha)" stroke-width="1"/><text x="${mL - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
-  const barras = dias.map((d, i) => {
-    const x = mL + i * bw + bw * 0.18, w = bw * 0.64, r = Number(d.respostas), a = Number(d.acertos);
-    if (!r) return "";
-    return `<rect x="${x}" y="${y(r)}" width="${w}" height="${y(0) - y(r)}" rx="2" fill="color-mix(in srgb, var(--errei) 55%, var(--superficie))"><title>${d.d.toLocaleDateString("pt-BR")}: ${r} respostas, ${a} acertos</title></rect>
-            <rect x="${x}" y="${y(a)}" width="${w}" height="${y(0) - y(a)}" rx="2" fill="var(--acento)"><title>${d.d.toLocaleDateString("pt-BR")}: ${r} respostas, ${a} acertos</title></rect>`;
+  for (let v = 0; v <= topoP; v += passo) grade += `<line x1="${mL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--linha)" stroke-width="1"/><text x="${mL - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  const barras = prox.map((p, i) => {
+    const x = mL + i * bw, w = Math.max(2, bw - 4), alt = y(0) - y(p.n);
+    const rot = `${i === 0 ? "Hoje" : i === 1 ? "Amanhã" : p.d.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })}: ${p.n} ${p.n === 1 ? "revisão" : "revisões"}`;
+    const marca = p.n ? `<path d="M${x + 2} ${y(0)} V${y(p.n) + Math.min(4, alt)} q0 -4 4 -4 h${w - 8} q4 0 4 4 V${y(0)} Z" fill="var(--revisar)"/>` : "";
+    return `<g data-dica="${esc(rot)}"><rect x="${x}" y="${mT}" width="${bw}" height="${H - mT - mB}" fill="transparent"/>${marca}</g>`;
   }).join("");
-  const rotulosX = dias.map((d, i) => (i % 5 === 4 || i === 0) ? `<text x="${mL + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${d.d.getDate()}/${d.d.getMonth() + 1}</text>` : "").join("");
+  const rotX = prox.map((p, i) => i % 7 === 0 ? `<text x="${mL + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle">${i === 0 ? "hoje" : `${p.d.getDate()}/${p.d.getMonth() + 1}`}</text>` : "").join("");
+  const totalPrev = prox.reduce((s, p) => s + p.n, 0);
+
+  // Situação dos cards: barra empilhada única
+  const totalE = e.novos + e.aprendendo + e.jovens + e.maduros;
+  const seg = [["Novos", e.novos, "var(--novo)"], ["Aprendendo", e.aprendendo, "var(--aprendendo)"], ["Jovens", e.jovens, "var(--jovem)"], ["Maduros", e.maduros, "var(--maduro)"]];
 
   const selo = (p) => p >= 80 ? `<span class="selo selo-bom">${p}%</span>` : p >= 60 ? `<span class="selo selo-medio">${p}%</span>` : `<span class="selo selo-ruim">${p}%</span>`;
 
   tela.innerHTML = `
-  <div class="cab"><div style="display:grid;gap:6px"><span class="rotulo">Últimos 30 dias</span><h1>Seu desempenho</h1></div></div>
+  <div class="titulo-pag"><div><h1>Estatísticas</h1><p>${hoje.n ? `Hoje: ${hoje.n} ${hoje.n === 1 ? "card" : "cards"}, ${Math.round((hoje.acertos / hoje.n) * 100)}% de acerto.` : "Você ainda não estudou hoje."}</p></div></div>
   <div class="kpis">
-    <div class="kpi painel"><span class="rotulo">Respostas</span><b>${total}</b></div>
-    <div class="kpi painel"><span class="rotulo">Acerto</span><b>${total ? Math.round((certos / total) * 100) : 0}%</b></div>
-    <div class="kpi painel"><span class="rotulo">Hoje</span><b>${hoje}</b></div>
-    <div class="kpi painel"><span class="rotulo">Dias seguidos</span><b>${seq}</b></div>
+    <div class="caixa kpi"><b>${total30}</b><span>respostas em 30 dias</span></div>
+    <div class="caixa kpi"><b>${total30 ? Math.round((certos30 / total30) * 100) : 0}%</b><span>de acerto em 30 dias</span></div>
+    <div class="caixa kpi"><b>${seq}</b><span>${seq === 1 ? "dia seguido" : "dias seguidos"}</span></div>
+    <div class="caixa kpi"><b class="c-rev">${e.maduros}</b><span>cards maduros</span></div>
   </div>
-  <section class="grafico painel">
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
-      <h2 style="font-size:17px">Cards respondidos por dia</h2>
-      <span style="font-size:13px;color:var(--tinta-2);display:flex;gap:14px;align-items:center">
-        <span><svg width="10" height="10" aria-hidden="true"><rect width="10" height="10" rx="2" fill="var(--acento)"/></svg> Acertos</span>
-        <span><svg width="10" height="10" aria-hidden="true"><rect width="10" height="10" rx="2" fill="color-mix(in srgb, var(--errei) 55%, var(--superficie))"/></svg> Erros</span>
-      </span>
-    </div>
-    <div class="tabela-wrap"><svg class="plot" viewBox="0 0 ${W + 24} ${H}" role="img" aria-label="Respostas por dia nos últimos 30 dias" style="min-width:520px">${grade}${barras}${rotulosX}</svg></div>
+
+  <section class="caixa grafico">
+    <h2>Calendário de estudo</h2>
+    <p class="nota">Cada quadrado é um dia. Quanto mais forte, mais cards você respondeu.</p>
+    <div class="rolagem"><svg class="plot" viewBox="0 0 ${largCal} ${18 + 7 * (cel + gap)}" style="max-width:${largCal * 1.6}px;min-width:${largCal}px" role="img" aria-label="Calendário de estudo das últimas 17 semanas">${meses}${diasSemana}${celulas}</svg></div>
+    <div class="legenda"><span>Menos</span>${corNivel.map((c) => `<i style="background:${c}"></i>`).join("")}<span>Mais</span></div>
   </section>
-  <section class="painel">
-    <div style="padding:16px 16px 4px"><h2 style="font-size:17px">Acerto por deck</h2></div>
-    <div class="tabela-wrap">
-    ${porDeck.length ? `<table class="tab"><thead><tr><th>Deck</th><th style="text-align:right">Respostas</th><th style="text-align:right">Acerto</th></tr></thead><tbody>
-      ${porDeck.map((d) => { const p = d.respostas ? Math.round((d.acertos / d.respostas) * 100) : 0;
-        return `<tr><td>${esc(String(d.deck).split("::").join(" › "))}</td><td class="num">${d.respostas}</td><td class="num">${selo(p)}</td></tr>`; }).join("")}
+
+  <section class="caixa grafico">
+    <h2>Previsão de revisões</h2>
+    <p class="nota">${totalPrev} ${totalPrev === 1 ? "revisão vence" : "revisões vencem"} nos próximos 30 dias. Atrasadas contam para hoje.</p>
+    <div class="rolagem"><svg class="plot" viewBox="0 0 ${W + 8} ${H}" role="img" aria-label="Revisões previstas por dia nos próximos 30 dias" style="min-width:480px">${grade}${barras}${rotX}</svg></div>
+  </section>
+
+  <section class="caixa grafico">
+    <h2>Situação dos cards</h2>
+    <p class="nota">Jovens têm intervalo menor que 21 dias; maduros, 21 dias ou mais.</p>
+    <div class="barra" style="height:16px;margin-top:14px" role="img" aria-label="${seg.map(([t, v]) => `${t}: ${v}`).join(", ")}">
+      ${seg.filter(([, v]) => v).map(([t, v, c]) => `<i style="width:${(v / Math.max(1, totalE)) * 100}%;background:${c};border-radius:4px" data-dica="${t}: ${v}"></i>`).join("")}
+    </div>
+    <div class="legenda">${seg.map(([t, v, c]) => `<span><i style="background:${c}"></i>${t} <b>${v}</b></span>`).join("")}</div>
+  </section>
+
+  <section class="caixa grafico" style="padding:0">
+    <div style="padding:18px 18px 6px"><h2>Acerto por deck</h2><p class="nota">Últimos 30 dias. "Bom" e "Fácil" contam como acerto.</p></div>
+    <div class="rolagem">
+    ${porDeck.length ? `<table class="tab"><thead><tr><th>Deck</th><th class="dir">Respostas</th><th class="dir">Acerto</th></tr></thead><tbody>
+      ${porDeck.map((d) => { const p = N(d.respostas) ? Math.round((N(d.acertos) / N(d.respostas)) * 100) : 0;
+        return `<tr><td>${esc(caminho(d.deck))}</td><td class="dir">${d.respostas}</td><td class="dir">${selo(p)}</td></tr>`; }).join("")}
     </tbody></table>` : `<div class="vazio">Responda alguns cards para ver seu desempenho por deck.</div>`}
     </div>
   </section>`;
+  ativarDicas(tela);
 }
 
-// ---------- conta ----------
-async function telaConta() {
-  tela.innerHTML = `<div class="vazio">Carregando…</div>`;
+/* =====================================================================
+   PERFIL E AJUSTES
+   ===================================================================== */
+async function telaPerfil() {
+  carregando();
   assinatura = await api.assinatura().catch(() => assinatura);
   const disps = await api.dispositivos().catch(() => []);
   const st = { ativa: "Ativa", cancelada: "Cancelada (acesso até o fim do período pago)", atrasada: "Pagamento em atraso", reembolsada: "Encerrada" }[assinatura?.status] ?? "—";
   const meu = idDispositivo();
+  const temaSalvo = guardar.ler("pm_tema", "auto");
   tela.innerHTML = `
-  <div class="cab"><div style="display:grid;gap:6px"><span class="rotulo">Sua conta</span><h1>${esc(sessao?.user?.email ?? "")}</h1></div></div>
-  <div class="conta">
-    <section class="painel">
+  <div class="titulo-pag"><div><h1>Perfil</h1><p>${esc(sessao?.user?.email ?? "")}</p></div></div>
+  <div class="perfil">
+    <section class="caixa">
       <h2>Assinatura</h2>
       <div class="linha-info"><span>Situação</span><strong>${st}</strong></div>
       <div class="linha-info"><span>Plano</span><span>${esc(assinatura?.plano ?? "—")}</span></div>
-      <div class="linha-info"><span>${assinatura?.status === "ativa" ? "Próxima renovação" : "Acesso até"}</span><span class="num">${fmtData(assinatura?.expira_em)}</span></div>
-      <p style="margin:0;font-size:14px;color:var(--tinta-2)">Cobranças, troca de cartão e cancelamento são feitos na sua conta da Kiwify.</p>
+      <div class="linha-info"><span>${assinatura?.status === "ativa" ? "Próxima renovação" : "Acesso até"}</span><span>${fmtData(assinatura?.expira_em)}</span></div>
+      <p class="texto-2">Cobranças, troca de cartão e cancelamento ficam na sua conta da Kiwify.</p>
     </section>
-    <section class="painel">
+    <section class="caixa">
       <h2>Estudo</h2>
-      <div class="campo"><label for="novos">Cards novos por dia (por deck)</label>
+      <div class="campo"><label for="novos">Cards novos por dia</label>
         <select id="novos">${[5, 10, 15, 20, 30, 40, 50, 75, 100].map((n) => `<option ${n === novosPorDia() ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+      <p class="texto-2">Como no Anki: cada card novo gera revisões nos dias seguintes. Comece com 20 e aumente se as revisões estiverem tranquilas.</p>
     </section>
-    <section class="painel">
+    <section class="caixa">
+      <h2>Aparência</h2>
+      <div class="segmentado" role="group" aria-label="Tema">
+        ${[["auto", "Automático"], ["light", "Claro"], ["dark", "Escuro"]].map(([v, t]) => `<button type="button" data-tema="${v}" aria-pressed="${temaSalvo === v}">${t}</button>`).join("")}
+      </div>
+    </section>
+    <section class="caixa">
       <h2>Aparelhos conectados</h2>
-      <p style="margin:0;font-size:14px;color:var(--tinta-2)">Sua conta é pessoal. Ao entrar em um aparelho novo além do limite, o mais antigo é desconectado.</p>
-      ${disps.map((d) => `<div class="disp"><div><strong>${esc(d.descricao ?? "Aparelho")}</strong>${d.dispositivo === meu ? ` <span class="selo selo-bom">Este aparelho</span>` : ""}<br><small class="num" style="color:var(--tinta-2)">Último acesso ${new Date(d.ultimo_acesso).toLocaleString("pt-BR")}</small></div>
-        ${d.dispositivo !== meu ? `<button class="btn" data-remover="${esc(d.dispositivo)}" style="padding:6px 12px">Desconectar</button>` : ""}</div>`).join("") || `<p style="margin:0">Nenhum aparelho registrado.</p>`}
+      <p class="texto-2">Sua conta é pessoal. Ao entrar em um aparelho novo além do limite, o mais antigo é desconectado.</p>
+      ${disps.map((d) => `<div class="disp"><div><strong>${esc(d.descricao ?? "Aparelho")}</strong>${d.dispositivo === meu ? ` <span class="selo selo-bom">Este aparelho</span>` : ""}<br><small class="texto-2">Último acesso ${new Date(d.ultimo_acesso).toLocaleString("pt-BR")}</small></div>
+        ${d.dispositivo !== meu ? `<button class="btn" data-remover="${esc(d.dispositivo)}">Desconectar</button>` : ""}</div>`).join("") || `<p>Nenhum aparelho registrado.</p>`}
     </section>
-    <section class="painel">
+    <section class="caixa">
       <h2>Senha e acesso</h2>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn" id="trocar-senha">Trocar senha</button>
         <button class="btn" id="sair">Sair</button>
       </div>
-      ${CONFIG.SUPORTE ? `<p style="margin:0;font-size:14px">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
+      ${CONFIG.SUPORTE ? `<p class="texto-2">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
     </section>
   </div>`;
   document.getElementById("novos").addEventListener("change", (e) => { guardar.gravar("mf_novos_dia", Number(e.target.value)); toast("Limite de cards novos atualizado."); });
+  tela.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => {
+    aplicarTema(b.dataset.tema);
+    tela.querySelectorAll("[data-tema]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  }));
   document.getElementById("sair").onclick = sair;
   document.getElementById("trocar-senha").onclick = () => telaEntrada("definir");
   tela.querySelectorAll("[data-remover]").forEach((b) => b.addEventListener("click", async () => {
-    await api.removerDispositivo(b.dataset.remover).catch(() => toast("Não foi possível desconectar."));
-    toast("Aparelho desconectado."); telaConta();
+    try { await api.removerDispositivo(b.dataset.remover); toast("Aparelho desconectado."); } catch { toast("Não foi possível desconectar."); }
+    telaPerfil();
   }));
 }
 
-// ---------- inicialização ----------
+/* =====================================================================
+   INICIALIZAÇÃO
+   ===================================================================== */
 function carregarScript(src) {
-  return new Promise((ok, falha) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => falha(new Error("Falha ao carregar " + src)); document.head.appendChild(s); });
+  return new Promise((ok, falhou) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => falhou(new Error("Falha ao carregar " + src)); document.head.appendChild(s); });
 }
 
 async function iniciar() {
   document.title = CONFIG.NOME;
   document.getElementById("nome-marca").textContent = CONFIG.NOME;
-  // Lê o retorno dos links de e-mail (convite e recuperação) antes que o Supabase limpe o endereço
+  aplicarTema(guardar.ler("pm_tema", "auto"));
   const hash = new URLSearchParams(location.hash.slice(1));
   const query = new URLSearchParams(location.search);
   const veioDeLink = query.has("definir") || /invite|recovery/.test(hash.get("type") ?? "");
@@ -995,7 +1730,7 @@ async function iniciar() {
     try {
       await carregarScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js");
     } catch {
-      tela.innerHTML = `<div class="msg msg-erro">Não foi possível carregar a plataforma. Verifique sua conexão e recarregue a página.</div>`; return;
+      tela.innerHTML = `<div class="msg msg-erro" style="margin-top:24px">Não foi possível carregar a plataforma. Verifique sua conexão e recarregue a página.</div>`; return;
     }
     const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
       auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
@@ -1008,7 +1743,6 @@ async function iniciar() {
     history.replaceState(null, "", location.pathname);
     return telaEntrada("recuperar", `<div class="msg msg-erro">Este link expirou ou já foi usado. Peça um novo abaixo.</div>`);
   }
-  // Pequena espera para o Supabase processar o token do link
   if (veioDeLink && !MODO_DEMO) await new Promise((r) => setTimeout(r, 400));
   sessao = await api.sessao();
   if (sessao && veioDeLink) return telaEntrada("definir");
