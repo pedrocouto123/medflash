@@ -413,6 +413,62 @@ table.tab .dir { text-align: right; }
   max-width: calc(100% - 32px);
 }
 @media (min-width: 900px) { .toast { bottom: 24px; } }
+/* ---------- criar decks e editar cards ---------- */
+.acoes-topo { display: flex; gap: 8px; flex-wrap: wrap; }
+.campo textarea {
+  border: 1px solid var(--linha); background: var(--superficie); border-radius: var(--r-peq); padding: 12px 14px; width: 100%;
+  min-height: 96px; resize: vertical; font: inherit; color: inherit; line-height: 1.5;
+}
+.campo textarea:focus { outline: 2px solid var(--pulso); outline-offset: 0; border-color: var(--pulso); }
+.folha h2 { font-size: 20px; font-weight: 700; }
+.folha .botoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.escolha { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--linha); background: none; font-weight: 600; }
+.escolha:last-child { border-bottom: 0; }
+.escolha .ico { color: var(--pulso); }
+.escolha small { margin-left: auto; color: var(--tinta-2); font-weight: 500; }
+.convite { padding: 18px; display: grid; gap: 10px; margin-top: 14px; }
+.convite p { color: var(--tinta-2); }
+.card-item { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px; align-items: center; padding: 12px 8px 12px 16px; border-bottom: 1px solid var(--linha); }
+.card-item:last-child { border-bottom: 0; }
+.card-item .frente { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-item .btn-ico, .resultado .btn-ico { border: 0; background: none; color: var(--tinta-3); }
+.card-item .btn-ico:hover, .resultado .btn-ico:hover { color: var(--pulso); }
+.res-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 14px 16px 8px; font-weight: 700; border-bottom: 1px solid var(--linha); }
+.res-cab span { color: var(--tinta-3); font-weight: 500; font-size: 14px; }
+.deck-achado { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--linha); background: none; padding: 12px 16px; }
+.deck-achado .ic { width: 38px; height: 38px; border-radius: 11px; background: var(--pulso-suave); color: var(--pulso); display: grid; place-items: center; }
+.deck-achado .ic .ico { width: 20px; height: 20px; }
+.deck-achado strong { display: block; }
+.deck-achado small { color: var(--tinta-2); font-size: 13px; }
+.deck-achado > .ico { color: var(--tinta-3); width: 18px; height: 18px; }
+.deck-achado:hover strong { color: var(--pulso); }
+.mais-res { width: 100%; border: 0; border-bottom: 1px solid var(--linha); background: none; color: var(--pulso); font-weight: 700; padding: 12px 16px; text-align: left; }
+
+/* ---------- transições ---------- */
+.ocupado-leve { opacity: .6; transition: opacity .15s ease; }
+#tela.ocupado { opacity: .5; pointer-events: none; transition: opacity .15s ease; }
+.vazio.carregando { opacity: 0; animation: aparecer .2s ease .35s forwards; }
+@keyframes aparecer { to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  #tela.entrando > * { animation: entrar .32s cubic-bezier(.2, .8, .2, 1) both; }
+  #tela.entrando > *:nth-child(2) { animation-delay: .03s; }
+  #tela.entrando > *:nth-child(3) { animation-delay: .06s; }
+  #tela.entrando > *:nth-child(4) { animation-delay: .09s; }
+  #tela.entrando > *:nth-child(5) { animation-delay: .12s; }
+  #tela.entrando > *:nth-child(n+6) { animation-delay: .15s; }
+  @keyframes entrar { from { opacity: 0; transform: translateY(10px); } }
+  .folha-fundo { animation: escurecer .2s ease-out both; }
+  .folha { animation: subir .3s cubic-bezier(.2, .8, .2, 1) both; }
+  @keyframes escurecer { from { background: transparent; } }
+  @keyframes subir { from { opacity: 0; transform: translateY(36px); } }
+  .card-conteudo.virando { animation: virar .26s ease-out both; }
+  @keyframes virar { from { opacity: 0; transform: translateY(6px); } }
+  .nav-baixo button .ico { transition: transform .2s ease; }
+  .nav-baixo button[aria-current="page"] .ico { transform: translateY(-2px) scale(1.06); }
+  .chip, .btn, .btn-ico, .tile, .resp { transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .1s ease; }
+  .tile:active, .btn:active, .resp:active, .chip:active { transform: scale(.98); }
+  #tela.entrando .tracado path.anima { animation-delay: .25s; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -449,6 +505,10 @@ table.tab .dir { text-align: right; }
     <symbol id="i-hospital" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16.5" rx="2.5"/><path d="M12 8v6.5M8.8 11.2h6.4"/></symbol>
     <symbol id="i-livro" viewBox="0 0 24 24"><path d="M4.5 5.5a2 2 0 0 1 2-2H19v14.5H6.5a2 2 0 0 0-2 2Z"/><path d="M4.5 19.5a2 2 0 0 0 2 2H19v-3.5"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5Z"/></symbol>
+    <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-lapis" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-lixo" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/><path d="M14 11v6M11 14h6"/></symbol>
   </defs>
 </svg>
 
@@ -692,6 +752,13 @@ function criarApiSupabase(sb) {
     async dispositivoValido() { const { data, error } = await sb.rpc("dispositivo_valido", { p_dispositivo: idDispositivo() }); if (error) return true; return data; },
     async dispositivos() { const { data, error } = await sb.from("dispositivos").select("*").order("ultimo_acesso", { ascending: false }); erro(error); return data; },
     async removerDispositivo(id) { const { error } = await sb.from("dispositivos").delete().eq("dispositivo", id); erro(error); },
+    criarDeck: (titulo) => rpc("criar_deck", { p_titulo: titulo }),
+    renomearDeck: (id, titulo) => rpc("renomear_deck", { p_deck: id, p_titulo: titulo }),
+    arquivarDeck: (id) => rpc("arquivar_deck", { p_deck: id }),
+    salvarCard: (deck, card, frente, verso) => rpc("salvar_card", { p_deck: deck, p_card: card, p_frente: frente, p_verso: verso }),
+    excluirCard: (id) => rpc("excluir_card", { p_card: id }),
+    copiarCard: (card, deck) => rpc("copiar_card", { p_card: card, p_deck: deck }),
+    async cardsDoDeck(id) { const { data, error } = await sb.from("cards").select("id, frente, verso").eq("deck_id", id).order("ordem"); erro(error); return data; },
   };
 }
 
@@ -714,6 +781,15 @@ function criarApiDemo() {
       }
     });
   });
+  // Decks e cards criados pelo aluno (guardados neste navegador)
+  const pessoais = guardar.ler("pm_demo_pessoais", { decks: [], cards: [] });
+  pessoais.decks.forEach((d) => decks.push(d));
+  pessoais.cards.forEach((c) => cards.push(c));
+  const salvarPessoais = () => guardar.gravar("pm_demo_pessoais", {
+    decks: decks.filter((d) => d.dono), cards: cards.filter((c) => decks.find((d) => d.id === c.deck_id)?.dono),
+  });
+  const nomeDe = (d) => d.dono ? `Meus decks::${d.titulo}` : d.nome;
+  const meu = (id) => { const d = decks.find((x) => x.id === id && x.dono && x.publicado !== false); if (!d) throw new Error("Deck não encontrado."); return d; };
   let prog = guardar.ler("pm_demo_prog", null);
   let hist = guardar.ler("pm_demo_hist", null);
   let favs = new Set(guardar.ler("pm_demo_favs", []));
@@ -743,7 +819,7 @@ function criarApiDemo() {
   const chaveDia = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   let logado = guardar.ler("mf_demo_sessao", null);
   const dispositivos = [{ dispositivo: idDispositivo(), descricao: descreverAparelho(), ultimo_acesso: new Date().toISOString() }];
-  const deckNome = (id) => decks.find((d) => d.id === id)?.nome ?? "";
+  const deckNome = (id) => { const d = decks.find((x) => x.id === id); return d ? nomeDe(d) : ""; };
   const comoFila = (c, novo) => ({ ...c, novo, ...(novo ? { ease: 2.5, intervalo: 0, repeticoes: 0, lapsos: 0, estado: "aprendendo" } : prog[c.card_id]) });
 
   return {
@@ -758,10 +834,10 @@ function criarApiDemo() {
     async assinatura() { return { status: "ativa", plano: "Assinatura mensal (demonstração)", expira_em: new Date(Date.now() + 23 * DIA).toISOString(), acesso: true }; },
     async decks() {
       const agora = Date.now();
-      return decks.map((d) => {
+      return decks.filter((d) => d.publicado !== false).sort((a, b) => (b.dono ? 1 : 0) - (a.dono ? 1 : 0)).map((d) => {
         const doDeck = cards.filter((c) => c.deck_id === d.id);
         const p = doDeck.map((c) => prog[c.card_id]).filter(Boolean);
-        return { ...d, total: doDeck.length, estudados: p.length,
+        return { ...d, nome: nomeDe(d), total: doDeck.length, estudados: p.length,
           aprendendo: p.filter((x) => x.estado === "aprendendo" && new Date(x.vencimento) <= agora).length,
           revisar: p.filter((x) => x.estado === "revisao" && new Date(x.vencimento) <= agora).length,
           maduros: p.filter((x) => x.intervalo >= 21).length,
@@ -828,6 +904,24 @@ function criarApiDemo() {
     async dispositivoValido() { return true; },
     async dispositivos() { return dispositivos; },
     async removerDispositivo() {},
+    async criarDeck(titulo) {
+      if (!String(titulo || "").trim()) throw new Error("Dê um nome ao deck.");
+      const id = "meu-" + Date.now(); decks.push({ id, nome: "pessoal:" + id, titulo: String(titulo).trim().slice(0, 80), dono: true, publicado: true });
+      salvarPessoais(); return id;
+    },
+    async renomearDeck(id, titulo) { if (!String(titulo || "").trim()) throw new Error("Dê um nome ao deck."); meu(id).titulo = String(titulo).trim().slice(0, 80); salvarPessoais(); },
+    async arquivarDeck(id) { meu(id).publicado = false; salvarPessoais(); },
+    async salvarCard(deck, card, frente, verso) {
+      meu(deck); if (!textoPuro(frente)) throw new Error("Escreva a frente do card.");
+      if (card) { const c = cards.find((x) => x.card_id === card); Object.assign(c, { frente, verso }); salvarPessoais(); return card; }
+      const id = "pc-" + Date.now(); cards.push({ card_id: id, deck_id: deck, frente, verso }); salvarPessoais(); return id;
+    },
+    async excluirCard(id) { const i = cards.findIndex((c) => c.card_id === id); if (i >= 0) cards.splice(i, 1); delete prog[id]; salvar(); salvarPessoais(); },
+    async copiarCard(card, deck) {
+      meu(deck); const o = cards.find((c) => c.card_id === card); if (!o) throw new Error("Card não encontrado.");
+      const id = "pc-" + Date.now(); cards.push({ card_id: id, deck_id: deck, frente: o.frente, verso: o.verso }); salvarPessoais(); return id;
+    },
+    async cardsDoDeck(id) { return cards.filter((c) => c.deck_id === id).map((c) => ({ id: c.card_id, frente: c.frente, verso: c.verso })); },
   };
 }
 </script>
@@ -849,7 +943,7 @@ const textoPuro = (html) => { const d = document.createElement("div"); d.innerHT
 const caminho = (nome) => String(nome).split("::").join(" › ");
 const folhaDoNome = (nome) => String(nome).split("::").at(-1);
 
-const AREAS = ["Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva", "Semiologia", "Especialidades", "Ética Médica"];
+const AREAS = ["Meus decks", "Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva", "Semiologia", "Especialidades", "Ética Médica"];
 const ICONES = [
   [/cardio|coracao/, "coracao"], [/pneumo|respirat|pulm/, "pulmao"], [/neuro|psiq/, "cerebro"],
   [/nefro|renal|urin|hemato|sangue/, "gota"], [/gastro|hepat|digest|abdom/, "talher"], [/endocr|diabet|metab|tireo/, "frasco"],
@@ -858,7 +952,7 @@ const ICONES = [
   [/prevent|vigil|vacin|imuniz/, "escudo"], [/etica|direito|sigilo|documento|publicidade|remunera|pericia|auditoria|principios|responsabilidade|relacao/, "livro"],
   [/semiolog|sinais vitais|anamnese|facies|marcha|termos/, "pulso"], [/especialidad|dermato|pele|oftalmo|otorrino|ortop|osteo|psiq/, "esteto"],
   [/ginec|ovario|utero|colo|endometr|mama|vulv|amenorr|anticoncep|ciclo menstr|parto|gemelar|sangramento|puerp/, "gestante"],
-  [/cancer|tumor|oncolog/, "micro"], [/neonat|puberdade|aleitamento|crescimento|congenit|exantem/, "bebe"], [/cirurg|hernia|cabeca|torax|vascular/, "bisturi"], [/clinica/, "esteto"],
+  [/cancer|tumor|oncolog/, "micro"], [/neonat|puberdade|aleitamento|crescimento|congenit|exantem/, "bebe"], [/cirurg|hernia|cabeca|torax|vascular/, "bisturi"], [/clinica/, "esteto"], [/^meus decks/, "decks"],
 ];
 const iconeDe = (nome) => { const n = semAcento(nome); for (const [re, i] of ICONES) if (re.test(n)) return i; return "livro"; };
 
@@ -898,9 +992,12 @@ function mostrarMoldura(sim) {
   document.getElementById("topo").hidden = !sim;
   document.getElementById("nav-baixo").hidden = !sim;
 }
+let navegando = false;
 function ir(nome, ...args) {
   // Sem assinatura ativa, só o Perfil (para sair ou trocar de conta) fica disponível
   if (!assinatura?.acesso && nome !== "perfil") return telaSemAcesso();
+  document.querySelectorAll(".folha-fundo").forEach((f) => f.remove());
+  navegando = true;
   window.scrollTo(0, 0);
   telaAtual = nome;
   const telas = { inicio: telaInicio, decks: telaDecks, deck: telaDeck, busca: telaBusca, stats: telaStats, perfil: telaPerfil, estudo: telaEstudo };
@@ -908,15 +1005,31 @@ function ir(nome, ...args) {
   marcarNav({ deck: "decks" }[nome] ?? nome);
   telas[nome](...args);
 }
-const carregando = (txt = "Carregando…") => { tela.innerHTML = `<div class="vazio">${txt}</div>`; };
+// Ao trocar de tela, o conteúdo anterior fica esmaecido até o novo chegar (sem piscar "Carregando…").
+// O aviso de carregamento só aparece se demorar mais de 0,35 s.
+const carregando = (txt = "Carregando…") => {
+  const atual = tela.firstElementChild;
+  if (atual && !atual.classList.contains("carregando")) { tela.classList.add("ocupado"); return; }
+  tela.innerHTML = `<div class="vazio carregando">${txt}</div>`;
+};
+new MutationObserver(() => {
+  if (tela.firstElementChild?.classList.contains("carregando")) return;
+  tela.classList.remove("ocupado");
+  if (!navegando) return;
+  navegando = false;
+  tela.classList.remove("entrando"); void tela.offsetWidth; tela.classList.add("entrando");
+  clearTimeout(tela._anim); tela._anim = setTimeout(() => tela.classList.remove("entrando"), 900);
+}).observe(tela, { childList: true });
 const falha = (e) => { tela.innerHTML = `<div class="msg msg-erro" style="margin-top:18px">Não foi possível carregar: ${esc(e.message)}. Verifique sua conexão e tente de novo.</div>`; };
 
 /* ---------- decks: agrupamento e contagens no estilo Anki ---------- */
-let cacheDecks = null;
+// Lista de decks guardada por 30 s: trocar de aba fica instantâneo
+let cacheDecks = null, cacheDecksEm = 0;
 async function obterDecks(forcar = false) {
-  if (!cacheDecks || forcar) cacheDecks = await api.decks();
+  if (!cacheDecks || (forcar && Date.now() - cacheDecksEm > 30000)) { cacheDecks = await api.decks(); cacheDecksEm = Date.now(); }
   return cacheDecks;
 }
+const invalidarDecks = () => { cacheDecks = null; };
 // Novos disponíveis hoje respeitando o limite diário (como o Anki mostra)
 function novosDisponiveis(lista) {
   const restantes = lista.reduce((s, d) => s + Math.max(0, N(d.total) - N(d.estudados)), 0);
@@ -1272,9 +1385,12 @@ async function telaDecks() {
   }).join("");
   const c = contar(lista);
 
+  const temMeus = meusDecks(lista).length > 0;
   tela.innerHTML = `
   <div class="titulo-pag"><div><h1>Decks</h1><p>${c.total} cards em ${lista.length} ${lista.length === 1 ? "deck" : "decks"}</p></div>
-    <button class="btn btn-primario" id="estudar-tudo" ${c.novos + c.aprendendo + c.revisar ? "" : "disabled"}>${ico("play", "ico-p")} Estudar tudo</button></div>
+    <div class="acoes-topo"><button class="btn" id="novo-deck">${ico("mais", "ico-p")} Novo deck</button>
+    <button class="btn btn-primario" id="estudar-tudo" ${c.novos + c.aprendendo + c.revisar ? "" : "disabled"}>${ico("play", "ico-p")} Estudar tudo</button></div></div>
+  ${temMeus ? "" : `<section class="caixa convite"><strong>Monte seus próprios decks</strong><p>Escreva cards com o que você quer fixar ou copie cards da plataforma pela busca. Eles entram na mesma revisão espaçada.</p><div><button class="btn" id="novo-deck-2">${ico("mais", "ico-p")} Criar meu primeiro deck</button></div></section>`}
   <section class="caixa arvore">
     <div class="arvore-cab"><span>Deck</span><span>Novos</span><span>Aprend.</span><span>Revisar</span></div>
     ${corpo || `<div class="vazio">Nenhum deck publicado ainda.</div>`}
@@ -1282,11 +1398,109 @@ async function telaDecks() {
   <div class="legenda-anki"><span><i style="background:var(--novo)"></i>Novos: ainda não vistos (até ${novosPorDia()} por dia)</span><span><i style="background:var(--aprendendo)"></i>Aprendendo: voltam em minutos</span><span><i style="background:var(--revisar)"></i>Revisar: vencem hoje</span></div>`;
 
   document.getElementById("estudar-tudo").onclick = () => ir("estudo", lista.map((d) => d.id), "Todos os decks");
+  document.getElementById("novo-deck").onclick = () => criarDeck();
+  document.getElementById("novo-deck-2")?.addEventListener("click", () => criarDeck());
   tela.querySelectorAll("[data-alternar]").forEach((b) => b.addEventListener("click", () => {
     const a = b.dataset.alternar; if (abertos.has(a)) abertos.delete(a); else abertos.add(a);
     guardar.gravar("pm_abertos", [...abertos]); telaDecks();
   }));
   tela.querySelectorAll("[data-abrir]").forEach((b) => b.addEventListener("click", () => ir("deck", { ids: b.dataset.abrir.split(","), nome: b.dataset.nome })));
+}
+
+/* ---------- folhas (janelas que sobem da parte de baixo) ---------- */
+function abrirFolha(html, rotulo) {
+  const fundo = document.createElement("div");
+  fundo.className = "folha-fundo";
+  fundo.innerHTML = `<div class="folha" role="dialog" aria-modal="true" aria-label="${esc(rotulo)}">${html}</div>`;
+  document.body.appendChild(fundo);
+  const fechar = () => { fundo.remove(); document.removeEventListener("keydown", tecla); };
+  const tecla = (e) => { if (e.key === "Escape") fechar(); };
+  document.addEventListener("keydown", tecla);
+  fundo.addEventListener("click", (e) => { if (e.target === fundo) fechar(); });
+  fundo.querySelectorAll("[data-fechar]").forEach((b) => { b.onclick = fechar; });
+  return { el: fundo, fechar, $: (sel) => fundo.querySelector(sel) };
+}
+const topoFolha = (titulo) => `<div class="folha-topo"><h2>${esc(titulo)}</h2><button class="btn-ico" data-fechar aria-label="Fechar">${ico("fechar")}</button></div>`;
+const erroNaFolha = (f, e) => { f.$(".erro-folha").innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; };
+
+/* ---------- decks do aluno ---------- */
+const MEUS = "Meus decks";
+const ehMeu = (nome) => String(nome).startsWith(MEUS + "::");
+const meusDecks = (lista) => lista.filter((d) => ehMeu(d.nome));
+const paraHtml = (t) => esc(String(t).trim()).replace(/\r?\n/g, "<br>");
+const paraTexto = (h) => { const d = document.createElement("div"); d.innerHTML = String(h).replace(/<br\s*\/?>/gi, "\n").replace(/<\/(div|p|li)>/gi, "\n"); return d.textContent.trim(); };
+const SEP_RESPOSTA = /<hr[^>]*id=["']?answer["']?[^>]*>/i;
+const editavel = (c) => !/<(img|table|video|audio|svg)/i.test(c.frente + c.verso);
+
+function criarDeck(depois) {
+  const f = abrirFolha(`${topoFolha("Novo deck")}
+    <form id="form-deck" class="campo" style="gap:14px">
+      <div class="campo"><label for="nome-deck">Nome do deck</label><input id="nome-deck" maxlength="80" required placeholder="Ex.: Revisão final de cardio" autocomplete="off"></div>
+      <p class="texto-2">Seus decks ficam em "Meus decks" e só você vê. Escreva cards próprios ou copie cards da busca.</p>
+      <div class="erro-folha"></div>
+      <div class="botoes"><button type="button" class="btn" data-fechar>Cancelar</button><button class="btn btn-primario">${ico("mais", "ico-p")} Criar deck</button></div>
+    </form>`, "Novo deck");
+  f.$("[data-fechar]:not(.btn-ico)").onclick = f.fechar;
+  f.$("#nome-deck").focus();
+  f.$("#form-deck").onsubmit = async (e) => {
+    e.preventDefault();
+    const nome = f.$("#nome-deck").value;
+    try {
+      const id = await api.criarDeck(nome);
+      invalidarDecks(); f.fechar(); toast("Deck criado.");
+      if (depois) depois(id, nome); else ir("deck", { ids: [id] });
+    } catch (err) { erroNaFolha(f, err); }
+  };
+}
+
+function editarCard(deckId, card, aoSalvar) {
+  const novo = !card;
+  const frenteTxt = novo ? "" : paraTexto(card.frente);
+  const versoTxt = novo ? "" : paraTexto(String(card.verso).split(SEP_RESPOSTA).at(-1));
+  const f = abrirFolha(`${topoFolha(novo ? "Novo card" : "Editar card")}
+    <form id="form-card" style="display:grid;gap:14px">
+      <div class="campo"><label for="frente">Frente (pergunta)</label><textarea id="frente" maxlength="20000" required placeholder="Ex.: Qual o antídoto da intoxicação por sulfato de magnésio?">${esc(frenteTxt)}</textarea></div>
+      <div class="campo"><label for="verso">Verso (resposta)</label><textarea id="verso" maxlength="20000" placeholder="Ex.: Gluconato de cálcio 10%, 10 mL IV lento.">${esc(versoTxt)}</textarea></div>
+      <div class="erro-folha"></div>
+      <div class="botoes">
+        ${novo ? `<button type="button" class="btn" id="salvar-outro">Salvar e criar outro</button>` : `<button type="button" class="btn" data-fechar>Cancelar</button>`}
+        <button class="btn btn-primario">Salvar card</button>
+      </div>
+    </form>`, novo ? "Novo card" : "Editar card");
+  f.$("#frente").focus();
+  async function salvar(continuar) {
+    const fr = f.$("#frente").value, vs = f.$("#verso").value;
+    const frente = paraHtml(fr), verso = `${frente}<hr id="answer">${paraHtml(vs)}`;
+    try {
+      await api.salvarCard(deckId, card?.id ?? null, frente, verso);
+      invalidarDecks(); toast(novo ? "Card criado." : "Card salvo.");
+      if (continuar) { f.$("#frente").value = ""; f.$("#verso").value = ""; f.$(".erro-folha").innerHTML = ""; f.$("#frente").focus(); }
+      else f.fechar();
+      aoSalvar?.();
+    } catch (err) { erroNaFolha(f, err); }
+  }
+  f.$("#form-card").onsubmit = (e) => { e.preventDefault(); salvar(false); };
+  f.$("#salvar-outro")?.addEventListener("click", () => salvar(true));
+  f.$("[data-fechar]:not(.btn-ico)")?.addEventListener("click", f.fechar);
+}
+
+// Escolhe um deck seu para copiar um card da plataforma
+async function copiarParaMeuDeck(cardId) {
+  let lista;
+  try { lista = meusDecks(await obterDecks()); } catch (e) { return toast("Não foi possível carregar seus decks."); }
+  const f = abrirFolha(`${topoFolha("Copiar para meu deck")}
+    <p class="texto-2">O card vira uma cópia sua, com revisão própria.</p>
+    <div class="caixa" style="overflow:hidden">
+      ${lista.map((d) => `<button class="escolha" data-destino="${esc(d.id)}">${ico("decks", "ico-p")}<span>${esc(folhaDoNome(d.nome))}</span><small>${d.total} ${N(d.total) === 1 ? "card" : "cards"}</small></button>`).join("")}
+      <button class="escolha" id="novo-destino">${ico("mais", "ico-p")}<span>Criar deck novo</span></button>
+    </div>
+    <div class="erro-folha"></div>`, "Copiar para meu deck");
+  const copiar = async (deckId, nomeDeck) => {
+    try { await api.copiarCard(cardId, deckId); invalidarDecks(); f.fechar(); toast(`Card copiado para "${nomeDeck}".`); }
+    catch (err) { erroNaFolha(f, err); }
+  };
+  f.el.querySelectorAll("[data-destino]").forEach((b) => b.addEventListener("click", () => copiar(b.dataset.destino, b.querySelector("span").textContent)));
+  f.$("#novo-destino").onclick = () => { f.fechar(); criarDeck((id, nome) => api.copiarCard(cardId, id).then(() => { invalidarDecks(); toast(`Card copiado para "${nome.trim()}".`); }).catch((e) => toast(e.message))); };
 }
 
 /* ---------- visão geral de um deck (tela "Estudar agora" do Anki) ---------- */
@@ -1300,7 +1514,8 @@ async function telaDeck({ ids, nome }) {
   const c = contar(sel);
   const pendentes = c.novos + c.aprendendo + c.revisar;
   const area = titulo.split("::")[0];
-  const subs = sel.length > 1 ? sel : [];
+  const subs = sel.length > 1 || !titulo.includes("::") ? sel : [];
+  const pessoal = sel.length === 1 && ehMeu(titulo);
 
   tela.innerHTML = `
   <button class="voltar" id="voltar">${ico("voltar", "ico-p")} Voltar</button>
@@ -1324,12 +1539,68 @@ async function telaDeck({ ids, nome }) {
     const k = contar([d]);
     return `<button class="caixa tile" data-deck="${esc(d.id)}"><h3>${esc(folhaDoNome(d.nome))}</h3><span class="area-nome">${d.total} ${N(d.total) === 1 ? "card" : "cards"}</span><span></span>
       <span class="tile-pe"><span class="mini-contagens">${num(k.novos, "c-novo")}${num(k.aprendendo, "c-apr")}${num(k.revisar, "c-rev")}</span>${ico(iconeDe(d.nome))}</span></button>`;
-  }).join("")}</div></section>` : ""}`;
+  }).join("")}</div></section>` : ""}
+  ${area === MEUS && !pessoal ? `<div style="margin-top:14px"><button class="btn" id="novo-deck">${ico("mais", "ico-p")} Novo deck</button></div>` : ""}
+  ${pessoal ? `<section class="sec">
+    <div class="sec-cab"><h2>Cards do deck</h2><span class="contador">${c.total} ${c.total === 1 ? "card" : "cards"}</span></div>
+    <div class="acoes-topo" style="margin-bottom:12px">
+      <button class="btn btn-primario" id="add-card">${ico("mais", "ico-p")} Adicionar card</button>
+      <button class="btn" id="renomear">${ico("lapis", "ico-p")} Renomear</button>
+      <button class="btn" id="arquivar">${ico("lixo", "ico-p")} Excluir deck</button>
+    </div>
+    <div class="caixa resultados" id="lista-cards" style="margin-top:0"><div class="vazio">Carregando cards…</div></div>
+  </section>` : ""}`;
 
   document.getElementById("voltar").onclick = () => ir(telaAnterior || "decks");
   document.getElementById("estudar").onclick = () => ir("estudo", ids, titulo);
+  document.getElementById("novo-deck")?.addEventListener("click", () => criarDeck());
+  if (pessoal) gerenciarDeck(sel[0], titulo);
   tela.querySelectorAll("[data-deck]").forEach((b) => b.addEventListener("click", () => ir("deck", { ids: [b.dataset.deck] })));
 }
+// Lista, cria, edita e exclui os cards de um deck do aluno
+async function gerenciarDeck(deck, titulo) {
+  const recarregar = () => { invalidarDecks(); telaDeck({ ids: [deck.id] }); };
+  document.getElementById("add-card").onclick = () => editarCard(deck.id, null, recarregar);
+  document.getElementById("renomear").onclick = () => {
+    const f = abrirFolha(`${topoFolha("Renomear deck")}
+      <form id="form-ren" style="display:grid;gap:14px"><div class="campo"><label for="novo-nome">Nome</label><input id="novo-nome" maxlength="80" value="${esc(folhaDoNome(titulo))}"></div>
+      <div class="erro-folha"></div><div class="botoes"><button class="btn btn-primario">Salvar</button></div></form>`, "Renomear deck");
+    f.$("#novo-nome").select();
+    f.$("#form-ren").onsubmit = async (e) => {
+      e.preventDefault();
+      try { await api.renomearDeck(deck.id, f.$("#novo-nome").value); f.fechar(); toast("Deck renomeado."); recarregar(); } catch (err) { erroNaFolha(f, err); }
+    };
+  };
+  document.getElementById("arquivar").onclick = () => {
+    const f = abrirFolha(`${topoFolha("Excluir deck?")}
+      <p>O deck "${esc(folhaDoNome(titulo))}" e os ${N(deck.total)} cards dele saem da sua lista. Os cards da plataforma não são afetados.</p>
+      <div class="erro-folha"></div><div class="botoes"><button class="btn" data-fechar>Cancelar</button><button class="btn btn-primario" id="confirmar">Excluir deck</button></div>`, "Excluir deck");
+    f.el.querySelectorAll(".botoes [data-fechar]").forEach((b) => { b.onclick = f.fechar; });
+    f.$("#confirmar").onclick = async () => {
+      try { await api.arquivarDeck(deck.id); f.fechar(); invalidarDecks(); toast("Deck excluído."); ir("decks"); } catch (err) { erroNaFolha(f, err); }
+    };
+  };
+  const caixa = document.getElementById("lista-cards");
+  let lista;
+  try { lista = await api.cardsDoDeck(deck.id); } catch (e) { caixa.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; return; }
+  if (!document.body.contains(caixa)) return;
+  if (!lista.length) {
+    caixa.innerHTML = `<div class="vazio">Este deck ainda não tem cards. Toque em "Adicionar card" ou copie cards pela busca, no botão ${ico("copiar", "ico-p")} de cada resultado.</div>`;
+    return;
+  }
+  caixa.innerHTML = lista.map((c, i) => `
+    <div class="card-item">
+      <span class="frente">${esc(textoPuro(c.frente)) || "(imagem)"}</span>
+      ${editavel(c) ? `<button class="btn-ico" data-editar="${i}" aria-label="Editar card">${ico("lapis", "ico-p")}</button>` : `<span></span>`}
+      <button class="btn-ico" data-excluir="${i}" aria-label="Excluir card">${ico("lixo", "ico-p")}</button>
+    </div>`).join("");
+  caixa.querySelectorAll("[data-editar]").forEach((b) => b.addEventListener("click", () => editarCard(deck.id, lista[+b.dataset.editar], recarregar)));
+  caixa.querySelectorAll("[data-excluir]").forEach((b) => b.addEventListener("click", async () => {
+    const card = lista[+b.dataset.excluir];
+    try { await api.excluirCard(card.id); toast("Card excluído."); recarregar(); } catch (e) { toast(e.message); }
+  }));
+}
+
 // Lembra de onde o aluno veio, para os botões "Voltar" e "Encerrar sessão"
 let telaAnterior = "decks", origemEstudo = { nome: "inicio", args: [] }, argsAtuais = [];
 const _ir = ir;
@@ -1407,7 +1678,7 @@ async function telaEstudo(ids, nome, modo = "normal") {
       <article class="caixa card" id="card" aria-live="polite">
         <div class="marca-dagua" style="background-image:${marcaDagua};color:var(--tinta)"></div>
         <span class="tipo-card">${tipo}</span>
-        <div class="card-conteudo">${virado ? atual.verso : atual.frente}</div>
+        <div class="card-conteudo virando">${virado ? atual.verso : atual.frente}</div>
       </article>
       <div class="acoes">
         ${virado ? `
@@ -1476,13 +1747,13 @@ async function telaEstudo(ids, nome, modo = "normal") {
 async function telaBusca(termoInicial = "", soFavInicial = false) {
   let termo = termoInicial, soFav = soFavInicial;
   tela.innerHTML = `
-  <div class="titulo-pag"><div><h1>Buscar</h1><p>Encontre qualquer card pelo texto, pelo deck ou pela área.</p></div></div>
+  <div class="titulo-pag"><div><h1>Buscar</h1><p>Encontre decks e cards pelo nome, pelo texto ou pela área.</p></div></div>
   <form class="busca-linha" id="form-busca" role="search" style="grid-template-columns:1fr">
     <label class="busca-campo"><span class="sr">Buscar nos cards</span>${ico("busca")}
       <input id="termo" type="search" placeholder="Ex.: Glasgow, pré-eclâmpsia, Child-Pugh" value="${esc(termo)}" enterkeyhint="search"></label>
   </form>
   <div class="chips" role="group" aria-label="Filtro" style="margin-top:12px">
-    <button class="chip" type="button" data-fav="0" aria-pressed="${!soFav}">Todos os cards</button>
+    <button class="chip" type="button" data-fav="0" aria-pressed="${!soFav}">Tudo</button>
     <button class="chip" type="button" data-fav="1" aria-pressed="${soFav}">Favoritos</button>
   </div>
   <section class="caixa resultados" id="resultados"><div class="vazio">Buscando…</div></section>`;
@@ -1495,22 +1766,49 @@ async function telaBusca(termoInicial = "", soFavInicial = false) {
     const dias = Math.round((new Date(r.vencimento) - Date.now()) / 86400000);
     return `<span class="estado c-rev">${r.intervalo >= 21 ? "Maduro" : "Jovem"} · ${dias <= 0 ? "revisar hoje" : `revisão em ${dias} ${dias === 1 ? "dia" : "dias"}`}</span>`;
   };
+  let pedido = 0, verTodosDecks = false;
   async function buscar() {
-    caixa.innerHTML = `<div class="vazio">Buscando…</div>`;
-    let lista;
-    try { lista = await api.buscar(termo.trim(), soFav); } catch (e) { caixa.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; return; }
-    if (!lista.length) {
-      caixa.innerHTML = `<div class="vazio">${soFav ? (termo ? "Nenhum favorito com esse termo." : "Você ainda não tem favoritos. Toque no coração durante o estudo para guardar um card aqui.") : "Nenhum card encontrado. Tente outra palavra ou o nome de um deck."}</div>`;
+    const meuPedido = ++pedido;
+    caixa.classList.add("ocupado-leve");
+    let lista, decksAchados = [];
+    const t = semAcento(termo.trim());
+    try {
+      const [cards, todos] = await Promise.all([api.buscar(termo.trim(), soFav), !soFav && t ? obterDecks() : Promise.resolve([])]);
+      lista = cards;
+      decksAchados = todos.filter((d) => semAcento(d.nome).includes(t));
+    } catch (e) { caixa.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; return; }
+    if (meuPedido !== pedido) return; // chegou resposta de uma busca antiga
+    if (!lista.length && !decksAchados.length) {
+      caixa.innerHTML = `<div class="vazio">${soFav ? (termo ? "Nenhum favorito com esse termo." : "Você ainda não tem favoritos. Toque no coração durante o estudo para guardar um card aqui.") : "Nada encontrado. Tente outra palavra ou o nome de uma área."}</div>`;
       return;
     }
-    caixa.innerHTML = (soFav ? `<div style="padding:14px 16px;border-bottom:1px solid var(--linha);display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="texto-2">${lista.length} ${lista.length === 1 ? "favorito" : "favoritos"}</span><button class="btn btn-primario" id="estudar-favs">${ico("play", "ico-p")} Estudar favoritos</button></div>` : "")
-      + lista.map((r, i) => `
-      <div class="resultado">
+    const mostrarDecks = verTodosDecks ? decksAchados : decksAchados.slice(0, 5);
+    const blocoDecks = decksAchados.length ? `
+      <div class="res-cab">Decks <span>${decksAchados.length}</span></div>
+      ${mostrarDecks.map((d) => { const k = contar([d]); return `
+        <button class="deck-achado" data-deck="${esc(d.id)}">
+          <span class="ic">${ico(iconeDe(d.nome))}</span>
+          <span><strong>${esc(folhaDoNome(d.nome))}</strong><small>${esc(d.nome.includes("::") ? d.nome.split("::").slice(0, -1).join(" › ") + " · " : "")}${d.total} ${N(d.total) === 1 ? "card" : "cards"}</small></span>
+          <span class="mini-contagens">${num(k.novos, "c-novo")}${num(k.aprendendo, "c-apr")}${num(k.revisar, "c-rev")}</span>
+          ${ico("seta")}
+        </button>`; }).join("")}
+      ${decksAchados.length > mostrarDecks.length ? `<button class="mais-res" id="mais-decks">Ver os ${decksAchados.length} decks</button>` : ""}` : "";
+    const blocoCards = lista.length ? `
+      ${soFav ? `<div style="padding:14px 16px;border-bottom:1px solid var(--linha);display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="texto-2">${lista.length} ${lista.length === 1 ? "favorito" : "favoritos"}</span><button class="btn btn-primario" id="estudar-favs">${ico("play", "ico-p")} Estudar favoritos</button></div>`
+        : `<div class="res-cab">Cards <span>${lista.length >= 60 ? "60 primeiros" : lista.length}</span></div>`}
+      ${lista.map((r, i) => `
+      <div class="resultado" style="grid-template-columns:minmax(0,1fr) auto auto">
         <button class="abrir" data-i="${i}"><span class="caminho">${esc(caminho(r.deck))}</span><span class="frente">${esc(textoPuro(r.frente))}</span>${estadoDe(r)}</button>
+        ${ehMeu(r.deck) ? "<span></span>" : `<button class="btn-ico" data-copiar="${esc(r.card_id)}" aria-label="Copiar para meu deck">${ico("copiar")}</button>`}
         <button class="btn-ico" data-fav-id="${esc(r.card_id)}" aria-pressed="${!!r.favorito}" aria-label="${r.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"}">${ico("coracao")}</button>
-      </div>`).join("");
+      </div>`).join("")}` : "";
+    caixa.innerHTML = blocoDecks + blocoCards;
+    caixa.classList.remove("ocupado-leve");
     document.getElementById("estudar-favs")?.addEventListener("click", () => ir("estudo", [], "Favoritos", "favoritos"));
-    caixa.querySelectorAll("[data-i]").forEach((b) => b.addEventListener("click", () => abrirFolha(lista[+b.dataset.i])));
+    document.getElementById("mais-decks")?.addEventListener("click", () => { verTodosDecks = true; buscar(); });
+    caixa.querySelectorAll("[data-deck]").forEach((b) => b.addEventListener("click", () => ir("deck", { ids: [b.dataset.deck] })));
+    caixa.querySelectorAll("[data-copiar]").forEach((b) => b.addEventListener("click", () => copiarParaMeuDeck(b.dataset.copiar)));
+    caixa.querySelectorAll("[data-i]").forEach((b) => b.addEventListener("click", () => verCard(lista[+b.dataset.i])));
     caixa.querySelectorAll("[data-fav-id]").forEach((b) => b.addEventListener("click", async () => {
       try {
         const ativo = await api.alternarFavorito(b.dataset.favId);
@@ -1519,24 +1817,16 @@ async function telaBusca(termoInicial = "", soFavInicial = false) {
       } catch { toast("Não foi possível salvar o favorito."); }
     }));
   }
-  function abrirFolha(r) {
-    const fundo = document.createElement("div");
-    fundo.className = "folha-fundo";
-    fundo.innerHTML = `<div class="folha" role="dialog" aria-modal="true" aria-label="Card">
-      <div class="folha-topo"><span>${esc(caminho(r.deck))}</span><button class="btn-ico" id="fechar-folha" aria-label="Fechar">${ico("fechar")}</button></div>
+  function verCard(r) {
+    const f = abrirFolha(`<div class="folha-topo"><span>${esc(caminho(r.deck))}</span><button class="btn-ico" data-fechar aria-label="Fechar">${ico("fechar")}</button></div>
       <article class="caixa card" oncontextmenu="return false"><div class="card-conteudo">${r.verso}</div></article>
-      ${estadoDe(r)}
-    </div>`;
-    document.body.appendChild(fundo);
-    const fechar = () => { fundo.remove(); document.removeEventListener("keydown", tecla); };
-    const tecla = (e) => { if (e.key === "Escape") fechar(); };
-    document.addEventListener("keydown", tecla);
-    fundo.addEventListener("click", (e) => { if (e.target === fundo) fechar(); });
-    fundo.querySelector("#fechar-folha").onclick = fechar;
-    fundo.querySelector("#fechar-folha").focus();
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">${estadoDe(r)}
+        ${ehMeu(r.deck) ? "" : `<button class="btn" id="copiar-folha">${ico("copiar", "ico-p")} Copiar para meu deck</button>`}</div>`, "Card");
+    f.$("[data-fechar]").focus();
+    f.$("#copiar-folha")?.addEventListener("click", () => { f.fechar(); copiarParaMeuDeck(r.card_id); });
   }
   document.getElementById("form-busca").onsubmit = (e) => { e.preventDefault(); input.blur(); };
-  input.addEventListener("input", () => { clearTimeout(input._t); input._t = setTimeout(() => { termo = input.value; buscar(); }, 300); });
+  input.addEventListener("input", () => { clearTimeout(input._t); input._t = setTimeout(() => { termo = input.value; verTodosDecks = false; buscar(); }, 250); });
   tela.querySelectorAll("[data-fav]").forEach((b) => b.addEventListener("click", () => {
     soFav = b.dataset.fav === "1";
     tela.querySelectorAll("[data-fav]").forEach((x) => x.setAttribute("aria-pressed", x === b));
