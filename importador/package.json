@@ -1,0 +1,16 @@
+{
+  "name": "medflash-importador",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Importa decks do Anki (.apkg) para a plataforma MedFlash",
+  "scripts": {
+    "importar": "node importar-apkg.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "adm-zip": "^0.5.16",
+    "dotenv": "^16.4.5",
+    "sql.js": "^1.11.0"
+  }
+}

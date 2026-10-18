@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MedFlash</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#1B6B58">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: coluna única centrada; a tela de estudo é um "prontuário" com o card no centro e as 4 respostas na base. */
+:root {
+  --papel: #EEF2EE;
+  --superficie: #FFFFFF;
+  --superficie-2: #F6F8F5;
+  --tinta: #17222B;
+  --tinta-2: #4E5B66;
+  --linha: #D5DDD6;
+  --acento: #1B6B58;
+  --acento-tinta: #FFFFFF;
+  --acento-suave: #DDECE5;
+  --novo: #2C5E9E;
+  --vencido: #B7412E;
+  --aprendendo: #B07A16;
+  --errei: #B7412E;
+  --dificil: #9A6A10;
+  --bom: #1B6B58;
+  --facil: #2C5E9E;
+  --sombra: 0 1px 2px rgba(23,34,43,.06), 0 8px 24px rgba(23,34,43,.06);
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-texto: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-dado: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  --raio: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papel: #0E1613; --superficie: #15201C; --superficie-2: #1A2722; --tinta: #E3ECE7; --tinta-2: #9DB0A7;
+    --linha: #2A3934; --acento: #5CC3A4; --acento-tinta: #0E1613; --acento-suave: #1C3129;
+    --novo: #7EA9E3; --vencido: #E4806B; --aprendendo: #DDAA4C;
+    --errei: #E4806B; --dificil: #DDAA4C; --bom: #5CC3A4; --facil: #7EA9E3;
+    --sombra: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --papel: #0E1613; --superficie: #15201C; --superficie-2: #1A2722; --tinta: #E3ECE7; --tinta-2: #9DB0A7;
+  --linha: #2A3934; --acento: #5CC3A4; --acento-tinta: #0E1613; --acento-suave: #1C3129;
+  --novo: #7EA9E3; --vencido: #E4806B; --aprendendo: #DDAA4C;
+  --errei: #E4806B; --dificil: #DDAA4C; --bom: #5CC3A4; --facil: #7EA9E3;
+  --sombra: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0; background: var(--papel); color: var(--tinta);
+  font: 16px/1.55 var(--f-texto);
+  -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--acento); }
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+
+/* ---------- moldura ---------- */
+.aviso-demo {
+  background: var(--acento-suave); color: var(--tinta); font-size: 14px; text-align: center;
+  padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topo {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--papel); border-bottom: 1px solid var(--linha);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--papel); }
+.topo-in, .pagina {
+  max-width: 980px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topo-in { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
+.marca { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+.marca svg { flex: none; }
+.nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.nav button {
+  border: 0; background: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: var(--tinta-2); font-weight: 700; font-size: 15px;
+}
+.nav button[aria-current="page"] { background: var(--acento-suave); color: var(--tinta); }
+.nav button:hover { color: var(--tinta); }
+.pagina { padding-block: 28px 64px; }
+
+/* ---------- elementos comuns ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--linha); background: var(--superficie); padding: 10px 18px; border-radius: 8px;
+  font-weight: 700; cursor: pointer; text-decoration: none; color: var(--tinta);
+}
+.btn:hover { border-color: var(--tinta-2); }
+.btn-primario { background: var(--acento); border-color: var(--acento); color: var(--acento-tinta); }
+.btn-primario:hover { filter: brightness(1.08); border-color: var(--acento); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn-texto { border: 0; background: none; color: var(--acento); font-weight: 700; cursor: pointer; padding: 4px 0; }
+.rotulo { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-2); }
+.num { font-family: var(--f-dado); font-variant-numeric: tabular-nums; }
+.campo { display: grid; gap: 6px; }
+.campo label { font-weight: 700; font-size: 14px; }
+.campo input, .campo select {
+  border: 1px solid var(--linha); background: var(--superficie); border-radius: 8px; padding: 11px 12px; width: 100%;
+}
+.campo input:focus { outline: 2px solid var(--acento); outline-offset: 0; border-color: var(--acento); }
+.msg { padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.msg-erro { background: color-mix(in srgb, var(--errei) 14%, var(--superficie)); color: var(--tinta); border: 1px solid color-mix(in srgb, var(--errei) 40%, transparent); }
+.msg-ok { background: var(--acento-suave); border: 1px solid color-mix(in srgb, var(--acento) 35%, transparent); }
+.painel { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio); }
+.vazio { color: var(--tinta-2); text-align: center; padding: 40px 16px; }
+
+/* ---------- login ---------- */
+.entrada { min-height: calc(100vh - 120px); display: grid; place-items: center; padding-block: 32px; }
+.entrada-caixa { width: 100%; max-width: 420px; display: grid; gap: 22px; }
+.entrada-caixa .painel { padding: 28px; display: grid; gap: 16px; box-shadow: var(--sombra); }
+.entrada h1 { font-size: clamp(30px, 6vw, 40px); font-weight: 800; }
+.entrada p { margin: 0; color: var(--tinta-2); }
+.entrada .areas { display: flex; flex-wrap: wrap; gap: 6px; }
+.entrada .areas span { font-size: 13px; border: 1px solid var(--linha); border-radius: 999px; padding: 3px 10px; color: var(--tinta-2); background: var(--superficie); }
+
+/* ---------- decks ---------- */
+.cab { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.cab h1 { font-size: clamp(26px, 5vw, 34px); font-weight: 800; }
+.resumo-dia { display: flex; gap: 22px; flex-wrap: wrap; }
+.resumo-dia div { display: grid; }
+.resumo-dia b { font-family: var(--f-dado); font-size: 24px; font-variant-numeric: tabular-nums; }
+.busca { margin-bottom: 18px; }
+.area { margin-bottom: 18px; overflow: hidden; }
+.area-cab {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--linha);
+  background: var(--superficie-2); flex-wrap: wrap;
+}
+.area-cab h2 { font-size: 19px; font-weight: 700; flex: 1; min-width: 0; }
+.deck {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px;
+  padding: 12px 16px; border-top: 1px solid var(--linha); cursor: pointer; width: 100%;
+  background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left;
+}
+.deck:first-of-type { border-top: 0; }
+.deck:hover { background: var(--superficie-2); }
+.deck-nome { min-width: 0; }
+.deck-nome strong { display: block; font-weight: 700; }
+.deck-nome small { color: var(--tinta-2); font-size: 13px; }
+.contagens { display: flex; gap: 12px; font-family: var(--f-dado); font-size: 14px; font-variant-numeric: tabular-nums; }
+.c-novo { color: var(--novo); } .c-venc { color: var(--vencido); } .c-apr { color: var(--aprendendo); }
+.contagens .zero { color: var(--linha); }
+.barra { width: 70px; height: 6px; background: var(--linha); border-radius: 99px; overflow: hidden; }
+.barra i { display: block; height: 100%; background: var(--acento); }
+@media (max-width: 560px) {
+  .deck { grid-template-columns: minmax(0, 1fr) auto; }
+  .deck .barra { display: none; }
+}
+
+/* ---------- estudo ---------- */
+.estudo { max-width: 780px; margin: 0 auto; display: grid; gap: 16px; }
+.estudo-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.estudo-topo .titulo { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.progresso-sessao { height: 4px; background: var(--linha); border-radius: 99px; overflow: hidden; }
+.progresso-sessao i { display: block; height: 100%; background: var(--acento); transition: width .3s; }
+.card {
+  position: relative; min-height: 300px; padding: clamp(22px, 5vw, 40px);
+  font-size: clamp(18px, 2.6vw, 21px); line-height: 1.6; box-shadow: var(--sombra);
+  user-select: none; -webkit-user-select: none; overflow-wrap: anywhere;
+  background-color: var(--superficie);
+}
+.card .marca-dagua { position: absolute; inset: 0; pointer-events: none; opacity: .07; border-radius: var(--raio); }
+.card-conteudo { position: relative; text-align: center; }
+.card-conteudo img { max-width: 100%; height: auto; border-radius: 6px; margin: 8px auto; display: block; -webkit-user-drag: none; }
+.card-conteudo hr, .card-conteudo hr#answer { border: 0; border-top: 1px dashed var(--linha); margin: 22px 0; }
+.card-conteudo .cloze { color: var(--acento); font-weight: 700; }
+.card-conteudo table { margin: 10px auto; border-collapse: collapse; font-size: .9em; }
+.card-conteudo td, .card-conteudo th { border: 1px solid var(--linha); padding: 4px 8px; }
+.card-conteudo ul, .card-conteudo ol { text-align: left; display: inline-block; margin: 8px 0; }
+.card-conteudo details.hint { margin-top: 14px; font-size: .9em; color: var(--tinta-2); }
+.card-conteudo details.hint summary { cursor: pointer; color: var(--acento); font-weight: 700; }
+.tipo-card { position: absolute; top: 12px; left: 14px; font-size: 11px; }
+.acoes { display: grid; gap: 10px; }
+.mostrar { width: 100%; padding: 16px; font-size: 17px; }
+.respostas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.resp {
+  display: grid; gap: 2px; justify-items: center; padding: 10px 6px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--linha); background: var(--superficie); font-weight: 700;
+}
+.resp small { font-family: var(--f-dado); font-weight: 500; font-size: 12px; color: var(--tinta-2); }
+.resp[data-nota="1"] { color: var(--errei); } .resp[data-nota="2"] { color: var(--dificil); }
+.resp[data-nota="3"] { color: var(--bom); }   .resp[data-nota="4"] { color: var(--facil); }
+.resp:hover { border-color: currentColor; }
+.atalhos { font-size: 12px; color: var(--tinta-2); text-align: center; }
+.atalhos kbd { font-family: var(--f-dado); border: 1px solid var(--linha); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 11px; }
+@media (hover: none) { .atalhos { display: none; } }
+.fim { text-align: center; padding: 48px 20px; display: grid; gap: 14px; justify-items: center; }
+.fim h2 { font-size: 28px; font-weight: 800; }
+
+/* ---------- estatísticas ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.kpi { padding: 16px; display: grid; gap: 4px; }
+.kpi b { font-family: var(--f-dado); font-size: 28px; font-variant-numeric: tabular-nums; }
+.grafico { padding: 18px; margin-bottom: 18px; }
+.grafico .plot { width: 100%; height: auto; display: block; }
+.grafico .plot text { fill: var(--tinta-2); font-family: var(--f-dado); font-size: 11px; }
+.tabela-wrap { overflow-x: auto; }
+table.tab { width: 100%; border-collapse: collapse; font-size: 15px; }
+table.tab th { text-align: left; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-2); padding: 12px 16px; border-bottom: 1px solid var(--linha); }
+table.tab td { padding: 12px 16px; border-bottom: 1px solid var(--linha); }
+table.tab tr:last-child td { border-bottom: 0; }
+table.tab td.num { text-align: right; }
+.selo { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.selo-bom { background: color-mix(in srgb, var(--bom) 16%, transparent); color: var(--bom); }
+.selo-medio { background: color-mix(in srgb, var(--dificil) 16%, transparent); color: var(--dificil); }
+.selo-ruim { background: color-mix(in srgb, var(--errei) 16%, transparent); color: var(--errei); }
+
+/* ---------- conta ---------- */
+.conta { display: grid; gap: 16px; max-width: 640px; }
+.conta .painel { padding: 20px; display: grid; gap: 12px; }
+.conta h2 { font-size: 19px; font-weight: 700; }
+.linha-info { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--linha); padding-top: 10px; }
+.linha-info:first-of-type { border-top: 0; padding-top: 0; }
+.linha-info span:first-child { color: var(--tinta-2); }
+.disp { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--linha); padding-top: 10px; }
+.disp div { min-width: 0; overflow-wrap: anywhere; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  background: var(--tinta); color: var(--papel); padding: 10px 16px; border-radius: 8px; font-size: 14px; box-shadow: var(--sombra);
+  max-width: calc(100% - 32px);
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="aviso-demo" class="aviso-demo" hidden>Modo demonstração: os dados são de exemplo e ficam só neste navegador. Para vender, configure o Supabase seguindo o guia.</div>
+<header class="topo" id="topo" hidden>
+  <div class="topo-in">
+    <div class="marca">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="6" width="20" height="16" rx="3" fill="none" stroke="var(--acento)" stroke-width="2"/><rect x="7" y="9" width="20" height="16" rx="3" fill="var(--acento)"/><path d="M11 17h3l1.5-3 2.5 6 1.5-3H23" fill="none" stroke="var(--acento-tinta)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="nome-marca">MedFlash</span>
+    </div>
+    <nav class="nav" aria-label="Principal">
+      <button type="button" data-ir="decks">Estudar</button>
+      <button type="button" data-ir="stats">Estatísticas</button>
+      <button type="button" data-ir="conta">Conta</button>
+    </nav>
+  </div>
+</header>
+<main class="pagina" id="tela"></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO
+   Os valores vêm de config.js, gerado na Vercel a partir das variáveis
+   de ambiente (veja scripts/gerar-config.mjs). Não edite aqui.
+   Sem SUPABASE_URL, o app abre em MODO DEMONSTRAÇÃO.
+   ===================================================================== */
+const CONFIG = Object.assign({
+  NOME: "MedFlash",
+  SUPABASE_URL: "",          // ex.: "https://abcdxyz.supabase.co"
+  SUPABASE_ANON_KEY: "",     // Supabase > Project Settings > API > anon public
+  CHECKOUT_URL: "",          // link do checkout da assinatura na Kiwify
+  SUPORTE: "",               // e-mail ou WhatsApp de suporte exibido ao aluno
+  NOVOS_POR_DIA_PADRAO: 20,
+  INTERVALO_MAXIMO_DIAS: 365,
+}, Object.fromEntries(Object.entries(window.MEDFLASH_CONFIG || {}).filter(([, v]) => v !== "" && v != null)));
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   REVISÃO ESPAÇADA (variação do SM-2, mesma lógica-base do Anki)
+   ===================================================================== */
+const SRS = (() => {
+  const MIN = 60 * 1000, DIA = 86400 * 1000;
+  const inicioDoDia = (ms) => { const d = new Date(ms); d.setHours(4, 0, 0, 0); return d.getTime(); };
+
+  function proximo(c, nota, agora = Date.now()) {
+    let { ease = 2.5, intervalo = 0, repeticoes = 0, lapsos = 0, estado = "aprendendo" } = c;
+    let venc;
+    if (estado === "aprendendo") {
+      if (nota === 1) venc = agora + 1 * MIN;
+      else if (nota === 2) venc = agora + 6 * MIN;
+      else {
+        intervalo = nota === 4 ? Math.max(4, intervalo) : Math.max(1, intervalo);
+        if (nota === 4) ease += 0.15;
+        repeticoes += 1; estado = "revisao";
+        venc = inicioDoDia(agora + intervalo * DIA);
+      }
+    } else {
+      if (nota === 1) {
+        lapsos += 1; ease = Math.max(1.3, ease - 0.2);
+        intervalo = Math.max(1, Math.round(intervalo * 0.2));
+        estado = "aprendendo"; venc = agora + 10 * MIN;
+      } else {
+        if (nota === 2) { intervalo = Math.max(intervalo + 1, Math.round(intervalo * 1.2)); ease = Math.max(1.3, ease - 0.15); }
+        if (nota === 3) { intervalo = Math.max(intervalo + 1, Math.round(intervalo * ease)); }
+        if (nota === 4) { intervalo = Math.max(intervalo + 1, Math.round(intervalo * ease * 1.3)); ease += 0.15; }
+        intervalo = Math.min(intervalo, CONFIG.INTERVALO_MAXIMO_DIAS);
+        repeticoes += 1;
+        venc = inicioDoDia(agora + intervalo * DIA);
+      }
+    }
+    return { ease: Math.round(ease * 100) / 100, intervalo, repeticoes, lapsos, estado, vencimento: new Date(venc).toISOString() };
+  }
+
+  function rotulo(c, nota) {
+    const r = proximo(c, nota);
+    const ms = new Date(r.vencimento).getTime() - Date.now();
+    if (ms < 60 * MIN) return `${Math.max(1, Math.round(ms / MIN))} min`;
+    const d = r.intervalo;
+    if (d < 31) return `${d} d`;
+    if (d < 365) return `${(d / 30).toFixed(d < 300 ? 1 : 0).replace(".", ",")} m`;
+    return `${(d / 365).toFixed(1).replace(".", ",")} a`;
+  }
+  return { proximo, rotulo };
+})();
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   DADOS DE DEMONSTRAÇÃO (usados só quando o Supabase não está configurado)
+   ===================================================================== */
+const DEMO_DECKS = [
+  { nome: "Clínica Médica::Cardiologia", cards: [
+    ["Quais são os quatro pilares do tratamento da insuficiência cardíaca com fração de ejeção reduzida?",
+     "<b>1.</b> IECA/BRA ou sacubitril-valsartana<br><b>2.</b> Betabloqueador (carvedilol, bisoprolol ou succinato de metoprolol)<br><b>3.</b> Antagonista mineralocorticoide (espironolactona)<br><b>4.</b> iSGLT2 (dapagliflozina ou empagliflozina)"],
+    ["cloze", "Na fibrilação atrial, o escore {{c1::CHA₂DS₂-VASc}} estima o risco de AVC; a anticoagulação está indicada com pontuação ≥ {{c2::2}} em homens."],
+    ["Qual é a tríade de Beck e em que situação ela aparece?",
+     "Hipotensão, turgência jugular e abafamento de bulhas.<br>Sugere <b>tamponamento cardíaco</b>."],
+  ]},
+  { nome: "Clínica Médica::Endocrinologia", cards: [
+    ["Cite os critérios laboratoriais para o diagnóstico de diabetes mellitus.",
+     "Glicemia de jejum ≥ 126 mg/dL<br>HbA1c ≥ 6,5%<br>Glicemia 2 h após TOTG ≥ 200 mg/dL<br>Glicemia aleatória ≥ 200 mg/dL com sintomas clássicos<br><small>(sem sintomas, confirmar com segundo exame)</small>"],
+    ["cloze", "Na cetoacidose diabética, a insulina só deve ser iniciada se o potássio sérico estiver ≥ {{c1::3,3}} mEq/L."],
+  ]},
+  { nome: "Cirurgia::Trauma", cards: [
+    ["Qual é a sequência do atendimento inicial ao politraumatizado (ATLS)?",
+     "<b>X</b> hemorragia exsanguinante<br><b>A</b> via aérea com proteção da coluna cervical<br><b>B</b> respiração e ventilação<br><b>C</b> circulação com controle de hemorragia<br><b>D</b> disfunção neurológica<br><b>E</b> exposição e controle do ambiente"],
+    ["cloze", "No trauma, Glasgow ≤ {{c1::8}} indica via aérea definitiva."],
+    ["Choque hemorrágico classe III: qual a perda volêmica estimada?",
+     "<b>31 a 40%</b> da volemia, com taquicardia importante, hipotensão, oligúria e alteração do estado mental."],
+  ]},
+  { nome: "Cirurgia::Abdome agudo", cards: [
+    ["O que é o sinal de Blumberg?", "Dor à descompressão brusca no ponto de McBurney, indicando irritação peritoneal (apendicite aguda)."],
+  ]},
+  { nome: "Pediatria::Neonatologia", cards: [
+    ["Quais parâmetros compõem o boletim de Apgar e quando ele é avaliado?",
+     "Frequência cardíaca, esforço respiratório, tônus muscular, irritabilidade reflexa e cor.<br>Avaliado no <b>1º e no 5º minuto</b> de vida."],
+    ["Icterícia que surge nas primeiras 24 horas de vida é fisiológica ou patológica?", "<b>Sempre patológica</b>. Investigar hemólise."],
+  ]},
+  { nome: "Pediatria::Infectologia", cards: [
+    ["cloze", "A {{c1::bronquiolite viral aguda}} é causada principalmente pelo {{c2::vírus sincicial respiratório::vírus}}."],
+    ["Qual enantema é considerado patognomônico do sarampo?", "<b>Manchas de Koplik</b>: pontos esbranquiçados na mucosa jugal, que surgem antes do exantema."],
+  ]},
+  { nome: "Ginecologia e Obstetrícia::Obstetrícia", cards: [
+    ["Como se define pré-eclâmpsia?", "PA ≥ 140 × 90 mmHg após <b>20 semanas</b> de gestação associada a proteinúria ou a sinais de lesão de órgão-alvo."],
+    ["Quais sinais indicam intoxicação por sulfato de magnésio e qual o antídoto?",
+     "Abolição do reflexo patelar, FR &lt; 16 irpm e diurese &lt; 25 mL/h.<br>Antídoto: <b>gluconato de cálcio 10%, 10 mL IV</b>, lento."],
+    ["Como se calcula a data provável do parto pela regra de Naegele?", "DUM <b>+ 7 dias − 3 meses</b> (+ 1 ano)."],
+  ]},
+  { nome: "Medicina Preventiva::Epidemiologia", cards: [
+    ["Qual a fórmula da sensibilidade de um teste diagnóstico?", "Sensibilidade = VP / (VP + FN)"],
+    ["cloze", "O valor preditivo positivo de um teste aumenta quando a {{c1::prevalência}} da doença aumenta."],
+    ["O que é prevenção quaternária?", "Ações para evitar a iatrogenia e o excesso de intervenções médicas (conceito de Jamoulle)."],
+  ]},
+];
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   CAMADA DE DADOS — duas implementações com a mesma interface
+   ===================================================================== */
+const MODO_DEMO = !CONFIG.SUPABASE_URL;
+const guardar = {
+  ler(k, padrao) { try { const v = localStorage.getItem(k); return v == null ? padrao : JSON.parse(v); } catch { return padrao; } },
+  gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* armazenamento indisponível */ } },
+  apagar(k) { try { localStorage.removeItem(k); } catch { /* idem */ } },
+};
+function idDispositivo() {
+  let id = guardar.ler("mf_dispositivo", null);
+  if (!id) { id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); guardar.gravar("mf_dispositivo", id); }
+  return id;
+}
+function descreverAparelho() {
+  const ua = navigator.userAgent;
+  const so = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iPhone/iPad" : /Windows/i.test(ua) ? "Windows" : /Mac/i.test(ua) ? "Mac" : /Linux/i.test(ua) ? "Linux" : "Aparelho";
+  const nav = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
+  return `${nav} · ${so}`;
+}
+
+// ---------- Supabase ----------
+function criarApiSupabase(sb) {
+  const erro = (e) => { if (e) throw new Error(e.message || String(e)); };
+  return {
+    async sessao() { const { data } = await sb.auth.getSession(); return data.session; },
+    async entrar(email, senha) {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+      if (error) throw new Error(/invalid/i.test(error.message) ? "E-mail ou senha incorretos." : error.message);
+      return data.session;
+    },
+    async sair() { await sb.auth.signOut(); },
+    async enviarRecuperacao(email) {
+      const url = location.origin + location.pathname + "?definir=1";
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: url }); erro(error);
+    },
+    async definirSenha(senha) { const { error } = await sb.auth.updateUser({ password: senha }); erro(error); },
+    async assinatura() { const { data, error } = await sb.rpc("minha_assinatura"); erro(error); return data?.[0] ?? null; },
+    async decks() { const { data, error } = await sb.rpc("resumo_decks"); erro(error); return data; },
+    async fila(ids, novos) { const { data, error } = await sb.rpc("fila_estudo", { p_decks: ids, p_novos_por_dia: novos }); erro(error); return data; },
+    async responder(card, nota, r) {
+      const { error } = await sb.rpc("responder_card", {
+        p_card: card.card_id, p_nota: nota, p_ease: r.ease, p_intervalo: r.intervalo, p_repeticoes: r.repeticoes,
+        p_lapsos: r.lapsos, p_estado: r.estado, p_vencimento: r.vencimento,
+      }); erro(error);
+    },
+    async estatisticas() { const { data, error } = await sb.rpc("minhas_estatisticas", { p_dias: 30 }); erro(error); return data; },
+    async porDia() { const { data, error } = await sb.rpc("revisoes_por_dia", { p_dias: 30 }); erro(error); return data; },
+    async registrarDispositivo() { const { error } = await sb.rpc("registrar_dispositivo", { p_dispositivo: idDispositivo(), p_descricao: descreverAparelho() }); erro(error); },
+    async dispositivoValido() { const { data, error } = await sb.rpc("dispositivo_valido", { p_dispositivo: idDispositivo() }); if (error) return true; return data; },
+    async dispositivos() { const { data, error } = await sb.from("dispositivos").select("*").order("ultimo_acesso", { ascending: false }); erro(error); return data; },
+    async removerDispositivo(id) { const { error } = await sb.from("dispositivos").delete().eq("dispositivo", id); erro(error); },
+  };
+}
+
+// ---------- Demonstração (em memória + localStorage) ----------
+function criarApiDemo() {
+  const pad = (n) => String(n).padStart(4, "0");
+  const decks = [], cards = [];
+  DEMO_DECKS.forEach((d, i) => {
+    const id = "deck-" + i;
+    decks.push({ id, nome: d.nome, descricao: null });
+    d.cards.forEach((c, j) => {
+      if (c[0] === "cloze") {
+        const nums = [...new Set([...c[1].matchAll(/\{\{c(\d+)::/g)].map((m) => +m[1]))];
+        nums.forEach((n) => {
+          const r = (lado) => c[1].replace(/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, (_, k, resp, dica) =>
+            +k !== n ? resp : lado === "q" ? `<span class="cloze">[${dica || "..."}]</span>` : `<span class="cloze">${resp}</span>`);
+          cards.push({ card_id: `c-${i}-${j}-${n}`, deck_id: id, frente: r("q"), verso: r("a") });
+        });
+      } else {
+        cards.push({ card_id: `c-${i}-${j}`, deck_id: id, frente: c[0], verso: `${c[0]}<hr id="answer">${c[1]}` });
+      }
+    });
+  });
+  let prog = guardar.ler("mf_demo_prog", {});
+  let hist = guardar.ler("mf_demo_hist", null);
+  if (!hist) {
+    // Histórico de exemplo dos últimos 14 dias, para a tela de estatísticas não abrir vazia
+    hist = [];
+    for (let d = 14; d >= 1; d--) {
+      if (d % 5 === 0) continue;
+      const n = 12 + ((d * 7) % 23);
+      for (let k = 0; k < n; k++) {
+        const card = cards[(d * 3 + k) % cards.length];
+        hist.push({ card_id: card.card_id, deck_id: card.deck_id, nota: (k + d) % 6 === 0 ? 1 : (k % 7 === 0 ? 2 : 3), em: Date.now() - d * 86400000 + k * 60000 });
+      }
+    }
+    guardar.gravar("mf_demo_hist", hist);
+  }
+  const salvar = () => { guardar.gravar("mf_demo_prog", prog); guardar.gravar("mf_demo_hist", hist); };
+  const hoje0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  let logado = guardar.ler("mf_demo_sessao", null);
+  const dispositivos = [{ dispositivo: idDispositivo(), descricao: descreverAparelho(), ultimo_acesso: new Date().toISOString() }];
+
+  return {
+    async sessao() { return logado; },
+    async entrar(email, senha) {
+      if (!email || !senha) throw new Error("Informe e-mail e senha.");
+      logado = { user: { email } }; guardar.gravar("mf_demo_sessao", logado); return logado;
+    },
+    async sair() { logado = null; guardar.apagar("mf_demo_sessao"); },
+    async enviarRecuperacao() {},
+    async definirSenha() {},
+    async assinatura() { return { status: "ativa", plano: "Assinatura mensal (demonstração)", expira_em: new Date(Date.now() + 23 * 86400000).toISOString(), acesso: true }; },
+    async decks() {
+      const agora = Date.now();
+      return decks.map((d) => {
+        const doDeck = cards.filter((c) => c.deck_id === d.id);
+        const est = doDeck.filter((c) => prog[c.card_id]);
+        return { ...d, total: doDeck.length, estudados: est.length, vencidos: est.filter((c) => new Date(prog[c.card_id].vencimento).getTime() <= agora).length };
+      });
+    },
+    async fila(ids, novos) {
+      const agora = Date.now();
+      const vencidos = cards.filter((c) => ids.includes(c.deck_id) && prog[c.card_id] && new Date(prog[c.card_id].vencimento).getTime() <= agora)
+        .map((c) => ({ ...c, novo: false, ...prog[c.card_id] }));
+      const introduzidosHoje = Object.entries(prog).filter(([id, p]) => p.criado >= hoje0() && cards.find((c) => c.card_id === id && ids.includes(c.deck_id))).length;
+      const novosLista = cards.filter((c) => ids.includes(c.deck_id) && !prog[c.card_id]).slice(0, Math.max(0, novos - introduzidosHoje))
+        .map((c) => ({ ...c, novo: true, ease: 2.5, intervalo: 0, repeticoes: 0, lapsos: 0, estado: "aprendendo" }));
+      return [...vencidos, ...novosLista];
+    },
+    async responder(card, nota, r) {
+      prog[card.card_id] = { ...r, criado: prog[card.card_id]?.criado ?? Date.now() };
+      hist.push({ card_id: card.card_id, deck_id: card.deck_id, nota, em: Date.now() });
+      salvar();
+    },
+    async estatisticas() {
+      const lim = Date.now() - 30 * 86400000, por = {};
+      for (const h of hist) if (h.em > lim) {
+        const p = (por[h.deck_id] ??= { deck_id: h.deck_id, deck: decks.find((d) => d.id === h.deck_id)?.nome, respostas: 0, acertos: 0 });
+        p.respostas++; if (h.nota >= 3) p.acertos++;
+      }
+      return Object.values(por).sort((a, b) => b.respostas - a.respostas);
+    },
+    async porDia() {
+      const por = {};
+      for (const h of hist) {
+        if (h.em < Date.now() - 30 * 86400000) continue;
+        const d = new Date(h.em); const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const p = (por[k] ??= { dia: k, respostas: 0, acertos: 0 }); p.respostas++; if (h.nota >= 3) p.acertos++;
+      }
+      return Object.values(por).sort((a, b) => a.dia.localeCompare(b.dia));
+    },
+    async registrarDispositivo() {},
+    async dispositivoValido() { return true; },
+    async dispositivos() { return dispositivos; },
+    async removerDispositivo() {},
+  };
+}
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   INTERFACE
+   ===================================================================== */
+let api = null;
+let sessao = null;
+let assinatura = null;
+const tela = document.getElementById("tela");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtData = (iso) => iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+const novosPorDia = () => guardar.ler("mf_novos_dia", CONFIG.NOVOS_POR_DIA_PADRAO);
+
+function toast(texto) {
+  const t = document.getElementById("toast");
+  t.textContent = texto; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3200);
+}
+
+function marcarNav(nome) {
+  document.querySelectorAll(".nav button").forEach((b) => {
+    if (b.dataset.ir === nome) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
+}
+document.querySelectorAll(".nav button").forEach((b) => b.addEventListener("click", () => ir(b.dataset.ir)));
+
+function ir(nome, ...args) {
+  window.scrollTo(0, 0);
+  const telas = { decks: telaDecks, stats: telaStats, conta: telaConta, estudo: telaEstudo };
+  marcarNav(nome === "estudo" ? "decks" : nome);
+  telas[nome](...args);
+}
+
+// ---------- entrada ----------
+const AREAS = ["Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva"];
+
+function telaEntrada(modo = "login", mensagem = "") {
+  document.getElementById("topo").hidden = true;
+  const titulos = {
+    login: ["Entrar", "Acesse seus flashcards para a residência."],
+    recuperar: ["Recuperar senha", "Enviaremos um link para você criar uma nova senha."],
+    definir: ["Crie sua senha", "Defina a senha que você vai usar para entrar."],
+  };
+  const [t, sub] = titulos[modo];
+  tela.innerHTML = `
+  <section class="entrada">
+    <div class="entrada-caixa">
+      <div style="display:grid;gap:10px">
+        <span class="rotulo">${esc(CONFIG.NOME)} · Residência Médica</span>
+        <h1>${t}</h1>
+        <p>${sub}</p>
+      </div>
+      <form class="painel" id="form-entrada" novalidate>
+        ${mensagem}
+        ${modo !== "definir" ? `
+        <div class="campo"><label for="email">E-mail</label>
+          <input id="email" type="email" autocomplete="email" required value="${MODO_DEMO ? "aluno@exemplo.com" : ""}"></div>` : ""}
+        ${modo !== "recuperar" ? `
+        <div class="campo"><label for="senha">${modo === "definir" ? "Nova senha" : "Senha"}</label>
+          <input id="senha" type="password" autocomplete="${modo === "definir" ? "new-password" : "current-password"}" minlength="8" required value="${MODO_DEMO ? "demonstracao" : ""}"></div>` : ""}
+        ${modo === "definir" ? `
+        <div class="campo"><label for="senha2">Repita a senha</label>
+          <input id="senha2" type="password" autocomplete="new-password" minlength="8" required></div>` : ""}
+        <div id="erro-entrada"></div>
+        <button class="btn btn-primario" type="submit" id="btn-entrada">${modo === "login" ? "Entrar" : modo === "recuperar" ? "Enviar link" : "Salvar senha e entrar"}</button>
+        ${modo === "login" ? `<button type="button" class="btn-texto" id="ir-recuperar">Esqueci minha senha</button>` : ""}
+        ${modo === "recuperar" ? `<button type="button" class="btn-texto" id="ir-login">Voltar para o login</button>` : ""}
+      </form>
+      ${modo === "login" ? `
+      <div style="display:grid;gap:10px">
+        <div class="areas">${AREAS.map((a) => `<span>${a}</span>`).join("")}</div>
+        <p style="font-size:14px">Ainda não é assinante? ${CONFIG.CHECKOUT_URL ? `<a href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assine aqui</a>. Você recebe o acesso por e-mail logo após o pagamento.` : "Você recebe o acesso por e-mail logo após a compra."}</p>
+      </div>` : ""}
+    </div>
+  </section>`;
+
+  document.getElementById("ir-recuperar")?.addEventListener("click", () => telaEntrada("recuperar"));
+  document.getElementById("ir-login")?.addEventListener("click", () => telaEntrada("login"));
+  document.getElementById("form-entrada").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const caixaErro = document.getElementById("erro-entrada");
+    const btn = document.getElementById("btn-entrada");
+    caixaErro.innerHTML = ""; btn.disabled = true;
+    try {
+      if (modo === "login") {
+        const email = document.getElementById("email").value.trim();
+        const senha = document.getElementById("senha").value;
+        if (!email || !senha) throw new Error("Informe e-mail e senha.");
+        sessao = await api.entrar(email, senha);
+        await aposEntrar();
+      } else if (modo === "recuperar") {
+        const email = document.getElementById("email").value.trim();
+        if (!email) throw new Error("Informe o e-mail da sua assinatura.");
+        await api.enviarRecuperacao(email);
+        telaEntrada("login", `<div class="msg msg-ok">Se o e-mail estiver cadastrado, você receberá um link em instantes. Confira também a caixa de spam.</div>`);
+      } else {
+        const s1 = document.getElementById("senha").value, s2 = document.getElementById("senha2").value;
+        if (s1.length < 8) throw new Error("A senha precisa ter pelo menos 8 caracteres.");
+        if (s1 !== s2) throw new Error("As duas senhas não são iguais.");
+        await api.definirSenha(s1);
+        history.replaceState(null, "", location.pathname);
+        sessao = await api.sessao();
+        toast("Senha salva.");
+        await aposEntrar();
+      }
+    } catch (e) {
+      caixaErro.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`;
+    } finally { btn.disabled = false; }
+  });
+}
+
+async function aposEntrar() {
+  try { await api.registrarDispositivo(); } catch { /* segue mesmo assim */ }
+  assinatura = await api.assinatura().catch(() => null);
+  document.getElementById("topo").hidden = false;
+  if (!assinatura?.acesso) return telaSemAcesso();
+  ir("decks");
+  vigiarDispositivo();
+}
+
+function telaSemAcesso() {
+  document.getElementById("topo").hidden = false;
+  marcarNav("");
+  const st = assinatura?.status;
+  const motivo = !assinatura ? "Não encontramos uma assinatura para este e-mail."
+    : st === "reembolsada" ? "Sua compra foi reembolsada ou contestada, por isso o acesso foi encerrado."
+    : st === "atrasada" ? "O pagamento da sua assinatura está em atraso. Regularize na Kiwify para voltar a estudar."
+    : `Sua assinatura terminou em ${fmtData(assinatura.expira_em)}.`;
+  tela.innerHTML = `
+  <section class="fim painel">
+    <span class="rotulo">Acesso indisponível</span>
+    <h2>Sua assinatura não está ativa</h2>
+    <p style="margin:0;max-width:52ch;color:var(--tinta-2)">${motivo} Assinou com outro e-mail? Saia e entre com ele.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      ${CONFIG.CHECKOUT_URL ? `<a class="btn btn-primario" href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assinar agora</a>` : ""}
+      <button class="btn" id="recarregar">Já paguei, verificar de novo</button>
+      <button class="btn" id="sair">Sair</button>
+    </div>
+    ${CONFIG.SUPORTE ? `<p style="font-size:14px;margin:0">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
+  </section>`;
+  document.getElementById("recarregar").onclick = aposEntrar;
+  document.getElementById("sair").onclick = sair;
+}
+
+async function sair() { await api.sair(); sessao = null; telaEntrada("login"); }
+
+let vigia = null;
+function vigiarDispositivo() {
+  clearInterval(vigia);
+  vigia = setInterval(async () => {
+    const ok = await api.dispositivoValido().catch(() => true);
+    if (!ok) {
+      clearInterval(vigia);
+      await api.sair();
+      telaEntrada("login", `<div class="msg msg-erro">Sua conta foi aberta em outro aparelho e esta sessão foi encerrada. Cada assinatura pode ficar conectada em poucos aparelhos ao mesmo tempo.</div>`);
+    }
+  }, 120000);
+}
+
+// ---------- decks ----------
+async function telaDecks(filtro = "") {
+  tela.innerHTML = `<div class="vazio">Carregando seus decks…</div>`;
+  let lista;
+  try { lista = await api.decks(); } catch (e) { tela.innerHTML = `<div class="msg msg-erro">Não foi possível carregar os decks: ${esc(e.message)}</div>`; return; }
+
+  const grupos = {};
+  for (const d of lista) {
+    const partes = d.nome.split("::");
+    const area = partes[0];
+    (grupos[area] ??= []).push({ ...d, sub: partes.slice(1).join(" › ") || "Geral" });
+  }
+  const totalVenc = lista.reduce((s, d) => s + Number(d.vencidos), 0);
+  const totalNovos = lista.reduce((s, d) => s + Math.max(0, d.total - d.estudados), 0);
+  const totalEst = lista.reduce((s, d) => s + Number(d.estudados), 0);
+  const totalCards = lista.reduce((s, d) => s + Number(d.total), 0);
+
+  const linhaDeck = (d) => {
+    const novos = Math.max(0, d.total - d.estudados);
+    const pct = d.total ? Math.round((d.estudados / d.total) * 100) : 0;
+    return `<button class="deck" data-ids="${d.id}" data-nome="${esc(d.nome)}">
+      <span class="deck-nome"><strong>${esc(d.sub)}</strong><small class="num">${d.total} ${d.total === 1 ? "card" : "cards"} · ${pct}% visto</small></span>
+      <span class="contagens"><span class="c-venc ${d.vencidos ? "" : "zero"}" title="Revisões para hoje">${d.vencidos}</span><span class="c-novo ${novos ? "" : "zero"}" title="Cards novos">${novos}</span></span>
+      <span class="barra" aria-hidden="true"><i style="width:${pct}%"></i></span>
+    </button>`;
+  };
+
+  const termo = filtro.trim().toLowerCase();
+  const blocos = Object.entries(grupos).map(([area, ds]) => {
+    const visiveis = termo ? ds.filter((d) => d.nome.toLowerCase().includes(termo)) : ds;
+    if (!visiveis.length) return "";
+    const ids = ds.map((d) => d.id).join(",");
+    const venc = ds.reduce((s, d) => s + Number(d.vencidos), 0);
+    return `<section class="area painel">
+      <div class="area-cab">
+        <h2>${esc(area)}</h2>
+        <span class="num" style="font-size:13px;color:var(--tinta-2)">${ds.reduce((s, d) => s + Number(d.total), 0)} cards${venc ? ` · <span class="c-venc">${venc} p/ revisar</span>` : ""}</span>
+        <button class="btn" style="padding:6px 12px;font-size:14px" data-ids="${ids}" data-nome="${esc(area)} (tudo)">Estudar a área</button>
+      </div>
+      ${visiveis.map(linhaDeck).join("")}
+    </section>`;
+  }).join("");
+
+  tela.innerHTML = `
+  <div class="cab">
+    <div style="display:grid;gap:6px">
+      <span class="rotulo">Hoje</span>
+      <h1>${totalVenc ? `${totalVenc} revisões esperando você` : "Em dia com as revisões"}</h1>
+    </div>
+    <div class="resumo-dia">
+      <div><b class="c-venc">${totalVenc}</b><span class="rotulo">Revisar</span></div>
+      <div><b class="c-novo">${totalNovos}</b><span class="rotulo">Novos</span></div>
+      <div><b>${totalCards ? Math.round((totalEst / totalCards) * 100) : 0}%</b><span class="rotulo">Do banco visto</span></div>
+    </div>
+  </div>
+  <div class="campo busca"><label for="busca" class="rotulo">Buscar deck</label>
+    <input id="busca" type="search" placeholder="Ex.: cardiologia, neonatologia, trauma" value="${esc(filtro)}"></div>
+  ${blocos || `<div class="vazio painel">${lista.length ? "Nenhum deck encontrado com esse termo." : "Nenhum deck publicado ainda."}</div>`}`;
+
+  const busca = document.getElementById("busca");
+  busca.addEventListener("input", () => {
+    clearTimeout(busca._t);
+    busca._t = setTimeout(() => { const pos = busca.selectionStart; telaDecks(busca.value).then(() => { const b = document.getElementById("busca"); b.focus(); b.setSelectionRange(pos, pos); }); }, 250);
+  });
+  tela.querySelectorAll("[data-ids]").forEach((el) => el.addEventListener("click", () => ir("estudo", el.dataset.ids.split(","), el.dataset.nome)));
+}
+
+// ---------- estudo ----------
+async function telaEstudo(ids, nome) {
+  tela.innerHTML = `<div class="vazio">Montando sua sessão…</div>`;
+  let fila;
+  try { fila = await api.fila(ids, novosPorDia()); }
+  catch (e) {
+    if (/acesso|permission|denied/i.test(e.message)) { assinatura = await api.assinatura().catch(() => null); if (!assinatura?.acesso) return telaSemAcesso(); }
+    tela.innerHTML = `<div class="msg msg-erro">Não foi possível carregar os cards: ${esc(e.message)}</div>`; return;
+  }
+  // Revisões primeiro (mais atrasadas antes), depois novos
+  fila.sort((a, b) => (a.novo === b.novo ? 0 : a.novo ? 1 : -1));
+  const total = fila.length;
+  let feitos = 0, acertos = 0, virado = false, atual = null, ocupado = false;
+  const nomeCurto = nome.split("::").join(" › ");
+
+  const marcaDagua = (() => {
+    const txt = esc(sessao?.user?.email ?? "");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="260" height="120"><text x="0" y="70" transform="rotate(-18 130 60)" font-family="monospace" font-size="13" fill="currentColor">${txt}</text></svg>`;
+    return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  })();
+
+  function contagem() {
+    const n = fila.filter((c) => c.novo).length;
+    const a = fila.filter((c) => !c.novo && c.estado === "aprendendo").length;
+    const r = fila.length - n - a;
+    return `<span class="contagens" aria-label="Restantes"><span class="c-novo" title="Novos">${n}</span><span class="c-apr" title="Aprendendo">${a}</span><span class="c-venc" title="Revisão">${r}</span></span>`;
+  }
+
+  function desenhar() {
+    if (!fila.length) {
+      const pct = feitos ? Math.round((acertos / feitos) * 100) : 0;
+      tela.innerHTML = `
+      <section class="estudo"><div class="fim painel">
+        <span class="rotulo">Sessão concluída</span>
+        <h2>${feitos ? "Parabéns, deck em dia" : "Nada para estudar agora"}</h2>
+        <p style="margin:0;color:var(--tinta-2);max-width:48ch">${feitos
+          ? `Você respondeu <b class="num">${feitos}</b> cards com <b class="num">${pct}%</b> de acerto. Volte amanhã para as próximas revisões.`
+          : `Você já viu as revisões de hoje e atingiu o limite de ${novosPorDia()} cards novos por dia neste deck. Ajuste o limite em Conta.`}</p>
+        <button class="btn btn-primario" id="voltar">Voltar aos decks</button>
+      </div></section>`;
+      document.getElementById("voltar").onclick = () => ir("decks");
+      return;
+    }
+    atual = fila[0];
+    const tipo = atual.novo ? `<span class="c-novo">Novo</span>` : atual.estado === "aprendendo" ? `<span class="c-apr">Aprendendo</span>` : `<span class="c-venc">Revisão</span>`;
+    tela.innerHTML = `
+    <section class="estudo">
+      <div class="estudo-topo">
+        <button class="btn" id="voltar" style="padding:6px 12px">← Decks</button>
+        <span class="titulo">${esc(nomeCurto)}</span>
+        ${contagem()}
+      </div>
+      <div class="progresso-sessao" aria-hidden="true"><i style="width:${total ? Math.min(100, (feitos / (feitos + fila.length)) * 100) : 0}%"></i></div>
+      <article class="card painel" id="card" aria-live="polite">
+        <div class="marca-dagua" style="background-image:${marcaDagua};color:var(--tinta)"></div>
+        <span class="tipo-card rotulo">${tipo}</span>
+        <div class="card-conteudo">${virado ? atual.verso : atual.frente}</div>
+      </article>
+      <div class="acoes">
+        ${virado ? `
+        <div class="respostas" role="group" aria-label="Como foi?">
+          ${[[1, "Errei"], [2, "Difícil"], [3, "Bom"], [4, "Fácil"]].map(([n, t]) =>
+            `<button class="resp" data-nota="${n}">${t}<small>${SRS.rotulo(atual, n)}</small></button>`).join("")}
+        </div>
+        <p class="atalhos">Atalhos: <kbd>1</kbd> Errei · <kbd>2</kbd> Difícil · <kbd>3</kbd> Bom · <kbd>4</kbd> Fácil</p>` : `
+        <button class="btn btn-primario mostrar" id="mostrar">Mostrar resposta</button>
+        <p class="atalhos">Atalho: <kbd>Espaço</kbd></p>`}
+      </div>
+    </section>`;
+    document.getElementById("voltar").onclick = () => ir("decks");
+    document.getElementById("card").addEventListener("contextmenu", (e) => e.preventDefault());
+    document.getElementById("mostrar")?.addEventListener("click", virar);
+    tela.querySelectorAll(".resp").forEach((b) => b.addEventListener("click", () => responder(Number(b.dataset.nota))));
+  }
+
+  function virar() { virado = true; desenhar(); document.querySelector(".resp[data-nota='3']")?.focus({ preventScroll: true }); }
+
+  async function responder(nota) {
+    if (ocupado || !atual) return;
+    ocupado = true;
+    const card = fila.shift();
+    const r = SRS.proximo(card, nota);
+    feitos++; if (nota >= 3) acertos++;
+    try { await api.responder(card, nota, r); }
+    catch (e) {
+      fila.unshift(card); feitos--; if (nota >= 3) acertos--;
+      toast("Não foi possível salvar a resposta. Verifique sua conexão.");
+      ocupado = false; return;
+    }
+    // Cards em aprendizado voltam ainda nesta sessão
+    if (r.estado === "aprendendo") {
+      fila.splice(Math.min(fila.length, nota === 1 ? 3 : 6), 0, { ...card, ...r, novo: false });
+    }
+    virado = false; ocupado = false;
+    desenhar();
+  }
+
+  function teclas(e) {
+    if (!document.getElementById("card")) { document.removeEventListener("keydown", teclas); return; }
+    if (e.target.matches("input, textarea")) return;
+    if (!virado && (e.code === "Space" || e.key === "Enter")) { e.preventDefault(); virar(); }
+    else if (virado && ["1", "2", "3", "4"].includes(e.key)) { e.preventDefault(); responder(Number(e.key)); }
+    else if (virado && e.code === "Space") { e.preventDefault(); responder(3); }
+  }
+  document.addEventListener("keydown", teclas);
+  desenhar();
+}
+
+// ---------- estatísticas ----------
+async function telaStats() {
+  tela.innerHTML = `<div class="vazio">Calculando…</div>`;
+  let porDeck, porDia;
+  try { [porDeck, porDia] = await Promise.all([api.estatisticas(), api.porDia()]); }
+  catch (e) { tela.innerHTML = `<div class="msg msg-erro">${esc(e.message)}</div>`; return; }
+
+  const chave = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const mapa = Object.fromEntries(porDia.map((d) => [String(d.dia).slice(0, 10), d]));
+  const dias = [];
+  for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dias.push({ d, k: chave(d), ...(mapa[chave(d)] ?? { respostas: 0, acertos: 0 }) }); }
+  const total = dias.reduce((s, d) => s + Number(d.respostas), 0);
+  const certos = dias.reduce((s, d) => s + Number(d.acertos), 0);
+  const hoje = Number(dias.at(-1).respostas);
+  let seq = 0; for (let i = dias.length - 1; i >= 0; i--) { if (Number(dias[i].respostas) > 0) seq++; else if (i !== dias.length - 1) break; }
+
+  // Gráfico de barras: respostas por dia
+  const W = 720, H = 200, mL = 34, mB = 26, mT = 10;
+  const max = Math.max(10, ...dias.map((d) => Number(d.respostas)));
+  const passo = max <= 20 ? 5 : max <= 60 ? 10 : max <= 150 ? 25 : 50;
+  const topo = Math.ceil(max / passo) * passo;
+  const y = (v) => mT + (H - mT - mB) * (1 - v / topo);
+  const bw = (W - mL) / dias.length;
+  let grade = "";
+  for (let v = 0; v <= topo; v += passo) grade += `<line x1="${mL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--linha)" stroke-width="1"/><text x="${mL - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  const barras = dias.map((d, i) => {
+    const x = mL + i * bw + bw * 0.18, w = bw * 0.64, r = Number(d.respostas), a = Number(d.acertos);
+    if (!r) return "";
+    return `<rect x="${x}" y="${y(r)}" width="${w}" height="${y(0) - y(r)}" rx="2" fill="color-mix(in srgb, var(--errei) 55%, var(--superficie))"><title>${d.d.toLocaleDateString("pt-BR")}: ${r} respostas, ${a} acertos</title></rect>
+            <rect x="${x}" y="${y(a)}" width="${w}" height="${y(0) - y(a)}" rx="2" fill="var(--acento)"><title>${d.d.toLocaleDateString("pt-BR")}: ${r} respostas, ${a} acertos</title></rect>`;
+  }).join("");
+  const rotulosX = dias.map((d, i) => (i % 5 === 4 || i === 0) ? `<text x="${mL + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${d.d.getDate()}/${d.d.getMonth() + 1}</text>` : "").join("");
+
+  const selo = (p) => p >= 80 ? `<span class="selo selo-bom">${p}%</span>` : p >= 60 ? `<span class="selo selo-medio">${p}%</span>` : `<span class="selo selo-ruim">${p}%</span>`;
+
+  tela.innerHTML = `
+  <div class="cab"><div style="display:grid;gap:6px"><span class="rotulo">Últimos 30 dias</span><h1>Seu desempenho</h1></div></div>
+  <div class="kpis">
+    <div class="kpi painel"><span class="rotulo">Respostas</span><b>${total}</b></div>
+    <div class="kpi painel"><span class="rotulo">Acerto</span><b>${total ? Math.round((certos / total) * 100) : 0}%</b></div>
+    <div class="kpi painel"><span class="rotulo">Hoje</span><b>${hoje}</b></div>
+    <div class="kpi painel"><span class="rotulo">Dias seguidos</span><b>${seq}</b></div>
+  </div>
+  <section class="grafico painel">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+      <h2 style="font-size:17px">Cards respondidos por dia</h2>
+      <span style="font-size:13px;color:var(--tinta-2);display:flex;gap:14px;align-items:center">
+        <span><svg width="10" height="10" aria-hidden="true"><rect width="10" height="10" rx="2" fill="var(--acento)"/></svg> Acertos</span>
+        <span><svg width="10" height="10" aria-hidden="true"><rect width="10" height="10" rx="2" fill="color-mix(in srgb, var(--errei) 55%, var(--superficie))"/></svg> Erros</span>
+      </span>
+    </div>
+    <div class="tabela-wrap"><svg class="plot" viewBox="0 0 ${W + 24} ${H}" role="img" aria-label="Respostas por dia nos últimos 30 dias" style="min-width:520px">${grade}${barras}${rotulosX}</svg></div>
+  </section>
+  <section class="painel">
+    <div style="padding:16px 16px 4px"><h2 style="font-size:17px">Acerto por deck</h2></div>
+    <div class="tabela-wrap">
+    ${porDeck.length ? `<table class="tab"><thead><tr><th>Deck</th><th style="text-align:right">Respostas</th><th style="text-align:right">Acerto</th></tr></thead><tbody>
+      ${porDeck.map((d) => { const p = d.respostas ? Math.round((d.acertos / d.respostas) * 100) : 0;
+        return `<tr><td>${esc(String(d.deck).split("::").join(" › "))}</td><td class="num">${d.respostas}</td><td class="num">${selo(p)}</td></tr>`; }).join("")}
+    </tbody></table>` : `<div class="vazio">Responda alguns cards para ver seu desempenho por deck.</div>`}
+    </div>
+  </section>`;
+}
+
+// ---------- conta ----------
+async function telaConta() {
+  tela.innerHTML = `<div class="vazio">Carregando…</div>`;
+  assinatura = await api.assinatura().catch(() => assinatura);
+  const disps = await api.dispositivos().catch(() => []);
+  const st = { ativa: "Ativa", cancelada: "Cancelada (acesso até o fim do período pago)", atrasada: "Pagamento em atraso", reembolsada: "Encerrada" }[assinatura?.status] ?? "—";
+  const meu = idDispositivo();
+  tela.innerHTML = `
+  <div class="cab"><div style="display:grid;gap:6px"><span class="rotulo">Sua conta</span><h1>${esc(sessao?.user?.email ?? "")}</h1></div></div>
+  <div class="conta">
+    <section class="painel">
+      <h2>Assinatura</h2>
+      <div class="linha-info"><span>Situação</span><strong>${st}</strong></div>
+      <div class="linha-info"><span>Plano</span><span>${esc(assinatura?.plano ?? "—")}</span></div>
+      <div class="linha-info"><span>${assinatura?.status === "ativa" ? "Próxima renovação" : "Acesso até"}</span><span class="num">${fmtData(assinatura?.expira_em)}</span></div>
+      <p style="margin:0;font-size:14px;color:var(--tinta-2)">Cobranças, troca de cartão e cancelamento são feitos na sua conta da Kiwify.</p>
+    </section>
+    <section class="painel">
+      <h2>Estudo</h2>
+      <div class="campo"><label for="novos">Cards novos por dia (por deck)</label>
+        <select id="novos">${[5, 10, 15, 20, 30, 40, 50, 75, 100].map((n) => `<option ${n === novosPorDia() ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+    </section>
+    <section class="painel">
+      <h2>Aparelhos conectados</h2>
+      <p style="margin:0;font-size:14px;color:var(--tinta-2)">Sua conta é pessoal. Ao entrar em um aparelho novo além do limite, o mais antigo é desconectado.</p>
+      ${disps.map((d) => `<div class="disp"><div><strong>${esc(d.descricao ?? "Aparelho")}</strong>${d.dispositivo === meu ? ` <span class="selo selo-bom">Este aparelho</span>` : ""}<br><small class="num" style="color:var(--tinta-2)">Último acesso ${new Date(d.ultimo_acesso).toLocaleString("pt-BR")}</small></div>
+        ${d.dispositivo !== meu ? `<button class="btn" data-remover="${esc(d.dispositivo)}" style="padding:6px 12px">Desconectar</button>` : ""}</div>`).join("") || `<p style="margin:0">Nenhum aparelho registrado.</p>`}
+    </section>
+    <section class="painel">
+      <h2>Senha e acesso</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="trocar-senha">Trocar senha</button>
+        <button class="btn" id="sair">Sair</button>
+      </div>
+      ${CONFIG.SUPORTE ? `<p style="margin:0;font-size:14px">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
+    </section>
+  </div>`;
+  document.getElementById("novos").addEventListener("change", (e) => { guardar.gravar("mf_novos_dia", Number(e.target.value)); toast("Limite de cards novos atualizado."); });
+  document.getElementById("sair").onclick = sair;
+  document.getElementById("trocar-senha").onclick = () => telaEntrada("definir");
+  tela.querySelectorAll("[data-remover]").forEach((b) => b.addEventListener("click", async () => {
+    await api.removerDispositivo(b.dataset.remover).catch(() => toast("Não foi possível desconectar."));
+    toast("Aparelho desconectado."); telaConta();
+  }));
+}
+
+// ---------- inicialização ----------
+function carregarScript(src) {
+  return new Promise((ok, falha) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => falha(new Error("Falha ao carregar " + src)); document.head.appendChild(s); });
+}
+
+async function iniciar() {
+  document.title = CONFIG.NOME;
+  document.getElementById("nome-marca").textContent = CONFIG.NOME;
+  // Lê o retorno dos links de e-mail (convite e recuperação) antes que o Supabase limpe o endereço
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const query = new URLSearchParams(location.search);
+  const veioDeLink = query.has("definir") || /invite|recovery/.test(hash.get("type") ?? "");
+  const erroLink = hash.get("error_description");
+
+  if (MODO_DEMO) {
+    document.getElementById("aviso-demo").hidden = false;
+    api = criarApiDemo();
+  } else {
+    try {
+      await carregarScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js");
+    } catch {
+      tela.innerHTML = `<div class="msg msg-erro">Não foi possível carregar a plataforma. Verifique sua conexão e recarregue a página.</div>`; return;
+    }
+    const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+      auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+    });
+    api = criarApiSupabase(sb);
+    sb.auth.onAuthStateChange((evento) => { if (evento === "PASSWORD_RECOVERY") telaEntrada("definir"); });
+  }
+
+  if (erroLink) {
+    history.replaceState(null, "", location.pathname);
+    return telaEntrada("recuperar", `<div class="msg msg-erro">Este link expirou ou já foi usado. Peça um novo abaixo.</div>`);
+  }
+  // Pequena espera para o Supabase processar o token do link
+  if (veioDeLink && !MODO_DEMO) await new Promise((r) => setTimeout(r, 400));
+  sessao = await api.sessao();
+  if (sessao && veioDeLink) return telaEntrada("definir");
+  if (sessao) return aposEntrar();
+  telaEntrada("login");
+}
+iniciar();
+
+if ("serviceWorker" in navigator && !MODO_DEMO && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>

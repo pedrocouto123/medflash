@@ -1,0 +1,7 @@
+# Configuração usada pela Supabase CLI (GitHub Actions).
+# Só as funções são configuradas aqui; Auth e e-mails ficam no painel do Supabase.
+project_id = "medflash"
+
+[functions.kiwify-webhook]
+# A Kiwify não envia token do Supabase; a segurança é a assinatura HMAC da Kiwify.
+verify_jwt = false

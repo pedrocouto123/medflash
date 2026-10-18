@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/
+.DS_Store
+
+# Decks do Anki e prévias ficam só no seu computador (exceto o exemplo)
+importador/*.apkg
+!importador/exemplo.apkg
+importador/previa/
+
+# Arquivos locais da Supabase CLI
+supabase/.temp/
+supabase/.branches/
