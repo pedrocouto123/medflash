@@ -1,4 +1,4 @@
-# MedFlash — Guia de implantação
+# Pulse Medcards — Guia de implantação
 
 Plataforma de flashcards para residência médica com login, assinatura pela Kiwify e revisão espaçada no estilo do Anki.
 
@@ -17,7 +17,7 @@ Aluno compra na Kiwify
 Supabase ── função "kiwify-webhook" cria a conta e libera o acesso
         │      e envia o e-mail "crie sua senha"
         ▼
-App MedFlash (site hospedado na Vercel)
+App Pulse Medcards (site hospedado na Vercel)
         │  aluno entra com e-mail e senha
         ▼
 Banco de dados do Supabase só entrega os cards se a assinatura estiver ativa
@@ -90,18 +90,18 @@ O serviço de e-mail padrão do Supabase só envia para membros da sua equipe no
 
 1. Crie conta em um provedor de e-mail transacional, como **Brevo** ou **Resend**. Você precisará verificar um domínio próprio (ex.: `medflash.com.br`), o que exige acesso ao DNS do domínio.
 2. Copie os dados SMTP do provedor (servidor, porta, usuário, senha).
-3. No Supabase: **Authentication → Emails → SMTP Settings → Enable custom SMTP** e preencha. Remetente sugerido: `acesso@seudominio.com.br`, nome `MedFlash`.
+3. No Supabase: **Authentication → Emails → SMTP Settings → Enable custom SMTP** e preencha. Remetente sugerido: `acesso@seudominio.com.br`, nome `Pulse Medcards`.
 4. Ainda em **Authentication → Emails → Templates**, troque os textos para português:
 
-**Invite user** — assunto: `Seu acesso ao MedFlash está pronto`
+**Invite user** — assunto: `Seu acesso ao Pulse Medcards está pronto`
 ```html
-<h2>Bem-vindo(a) ao MedFlash!</h2>
+<h2>Bem-vindo(a) ao Pulse Medcards!</h2>
 <p>Sua assinatura foi confirmada. Clique no botão abaixo para criar sua senha e começar a estudar.</p>
 <p><a href="{{ .ConfirmationURL }}">Criar minha senha</a></p>
 <p>O link vale por 24 horas. Se expirar, use "Esqueci minha senha" na tela de login.</p>
 ```
 
-**Reset password** — assunto: `Redefina sua senha do MedFlash`
+**Reset password** — assunto: `Redefina sua senha do Pulse Medcards`
 ```html
 <h2>Redefinição de senha</h2>
 <p>Clique no botão abaixo para criar uma nova senha.</p>
@@ -124,7 +124,7 @@ A função do webhook já é publicada pelo GitHub Actions. Nada a fazer aqui.
    | `SUPABASE_ANON_KEY` | a chave **anon public** (nunca a service_role; o deploy recusa se for ela) |
    | `CHECKOUT_URL` | link do checkout da assinatura na Kiwify |
    | `SUPORTE` | seu e-mail ou WhatsApp de suporte |
-   | `MEDFLASH_NOME` | opcional; padrão "MedFlash" |
+   | `NOME_APP` | opcional; padrão "Pulse Medcards" |
 
 3. Clique em **Deploy**. Em menos de um minuto você recebe um endereço como `https://medflash.vercel.app` (pode mudar em **Settings → Domains**, onde também liga um domínio próprio).
 4. Use esse endereço em três lugares:

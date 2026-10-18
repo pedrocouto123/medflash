@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // =====================================================================
-// MedFlash — Importador de decks do Anki (.apkg)
+// Pulse Medcards — Importador de decks do Anki (.apkg)
 //
 // Uso:
 //   node importar-apkg.mjs <arquivo.apkg> [mais arquivos...] [opções]

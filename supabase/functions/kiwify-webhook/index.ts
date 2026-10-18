@@ -1,5 +1,5 @@
 // =====================================================================
-// MedFlash — Webhook da Kiwify
+// Pulse Medcards — Webhook da Kiwify
 // Recebe as notificações de venda/assinatura e libera ou bloqueia o acesso.
 //
 // Segredos necessários (definidos automaticamente pelo GitHub Actions,

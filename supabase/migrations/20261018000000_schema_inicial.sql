@@ -1,5 +1,5 @@
 -- =====================================================================
--- MedFlash — banco de dados (Supabase / PostgreSQL)
+-- Pulse Medcards — banco de dados (Supabase / PostgreSQL)
 -- Aplicado automaticamente pelo GitHub Actions (supabase db push).
 -- Também pode ser colado em Supabase > SQL Editor e executado mais de
 -- uma vez sem perder dados.

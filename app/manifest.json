@@ -1,6 +1,6 @@
 {
-  "name": "MedFlash — Flashcards para Residência",
-  "short_name": "MedFlash",
+  "name": "Pulse Medcards — Flashcards para Residência",
+  "short_name": "Pulse Medcards",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#EEF2EE",

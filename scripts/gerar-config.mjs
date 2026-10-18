@@ -6,7 +6,7 @@ import { writeFileSync } from "node:fs";
 const env = (nome) => (process.env[nome] ?? "").trim();
 
 const config = {
-  NOME: env("MEDFLASH_NOME"),
+  NOME: env("MEDFLASH_NOME") || env("NOME_APP"),
   SUPABASE_URL: env("SUPABASE_URL").replace(/\/$/, ""),
   SUPABASE_ANON_KEY: env("SUPABASE_ANON_KEY"),
   CHECKOUT_URL: env("CHECKOUT_URL"),

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Importa decks do Anki (.apkg) para a plataforma MedFlash",
+  "description": "Importa decks do Anki (.apkg) para a plataforma Pulse Medcards",
   "scripts": {
     "importar": "node importar-apkg.mjs"
   },
