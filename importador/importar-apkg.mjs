@@ -228,16 +228,21 @@ async function enviar(todos, midias) {
   const nomes = new Set(todos.flatMap((c) => [...midiasReferenciadas(c.frente), ...midiasReferenciadas(c.verso)]));
   const mapa = {};
   let enviadas = 0, faltando = 0;
-  for (const nome of nomes) {
-    const original = midias[nome] ? nome : (() => { try { return decodeURIComponent(nome); } catch { return nome; } })();
-    const ler = midias[original];
-    if (!ler) { faltando++; continue; }
-    const chaveArq = chaveMidia(original);
-    const ext = chaveArq.split(".").pop();
-    try { mapa[nome] = await destino.midia(chaveArq, MIME[ext] ?? "application/octet-stream", ler()); }
-    catch (e) { throw new Error(`Erro ao enviar imagem ${original}: ${e.message}`); }
-    if (++enviadas % 50 === 0) console.log(`   ${enviadas}/${nomes.size} imagens`);
+  const fila = [...nomes];
+  async function trabalhador() {
+    while (fila.length) {
+      const nome = fila.shift();
+      const original = midias[nome] ? nome : (() => { try { return decodeURIComponent(nome); } catch { return nome; } })();
+      const ler = midias[original];
+      if (!ler) { faltando++; continue; }
+      const chaveArq = chaveMidia(original);
+      const ext = chaveArq.split(".").pop();
+      try { mapa[nome] = await destino.midia(chaveArq, MIME[ext] ?? "application/octet-stream", ler()); }
+      catch (e) { throw new Error(`Erro ao enviar imagem ${original}: ${e.message}`); }
+      if (++enviadas % 50 === 0) console.log(`   ${enviadas}/${nomes.size} imagens`);
+    }
   }
+  await Promise.all(Array.from({ length: 6 }, trabalhador));
   console.log(`   Imagens enviadas: ${enviadas}${faltando ? ` (${faltando} não encontradas no pacote)` : ""}`);
 
   // 2) Decks

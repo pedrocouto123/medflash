@@ -19,6 +19,10 @@ on:
         description: "Reimportar todos os decks"
         type: boolean
         default: true
+      somente:
+        description: "Opcional: caminhos separados por ; (importa só esses)"
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -51,8 +55,12 @@ jobs:
         env:
           ANTES: ${{ github.event.before }}
           TUDO: ${{ github.event_name == 'workflow_dispatch' && inputs.tudo }}
+          SOMENTE: ${{ inputs.somente }}
         run: |
-          if [ "$TUDO" = "true" ] || [ -z "$ANTES" ] || [ "$ANTES" = "0000000000000000000000000000000000000000" ]; then
+          git config core.quotepath off
+          if [ -n "$SOMENTE" ]; then
+            echo "$SOMENTE" | tr ';' '\n' | sed '/^$/d' > lista.txt
+          elif [ "$TUDO" = "true" ] || [ -z "$ANTES" ] || [ "$ANTES" = "0000000000000000000000000000000000000000" ]; then
             git ls-files 'importador/decks/**.apkg' > lista.txt
           else
             git diff --name-only --diff-filter=AM "$ANTES" "$GITHUB_SHA" -- 'importador/decks/**.apkg' > lista.txt
