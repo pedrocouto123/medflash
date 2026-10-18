@@ -849,13 +849,16 @@ const textoPuro = (html) => { const d = document.createElement("div"); d.innerHT
 const caminho = (nome) => String(nome).split("::").join(" › ");
 const folhaDoNome = (nome) => String(nome).split("::").at(-1);
 
-const AREAS = ["Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva"];
+const AREAS = ["Clínica Médica", "Cirurgia", "Pediatria", "Ginecologia e Obstetrícia", "Medicina Preventiva", "Semiologia", "Especialidades", "Ética Médica"];
 const ICONES = [
   [/cardio|coracao/, "coracao"], [/pneumo|respirat|pulm/, "pulmao"], [/neuro|psiq/, "cerebro"],
   [/nefro|renal|urin|hemato|sangue/, "gota"], [/gastro|hepat|digest|abdom/, "talher"], [/endocr|diabet|metab|tireo/, "frasco"],
   [/infect|micro|parasit|imuno/, "micro"], [/trauma|urgenc|emerg|queimad/, "curativo"], [/neonat|pediat|puericult|crianc/, "bebe"],
   [/obstet|gineco|gestac|mama/, "gestante"], [/epidem|bioest|estatist/, "grafico"], [/sus\b|saude publ|politic/, "hospital"],
-  [/prevent|vigil|vacin/, "escudo"], [/cirurg|hernia|cabeca|torax|vascular/, "bisturi"], [/clinica/, "esteto"],
+  [/prevent|vigil|vacin|imuniz/, "escudo"], [/etica|direito|sigilo|documento|publicidade|remunera|pericia|auditoria|principios|responsabilidade|relacao/, "livro"],
+  [/semiolog|sinais vitais|anamnese|facies|marcha|termos/, "pulso"], [/especialidad|dermato|pele|oftalmo|otorrino|ortop|osteo|psiq/, "esteto"],
+  [/ginec|ovario|utero|colo|endometr|mama|vulv|amenorr|anticoncep|ciclo menstr|parto|gemelar|sangramento|puerp/, "gestante"],
+  [/cancer|tumor|oncolog/, "micro"], [/neonat|puberdade|aleitamento|crescimento|congenit|exantem/, "bebe"], [/cirurg|hernia|cabeca|torax|vascular/, "bisturi"], [/clinica/, "esteto"],
 ];
 const iconeDe = (nome) => { const n = semAcento(nome); for (const [re, i] of ICONES) if (re.test(n)) return i; return "livro"; };
 

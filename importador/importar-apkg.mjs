@@ -120,7 +120,8 @@ async function lerApkg(caminho) {
 }
 
 function nomeFinal(deck) {
-  const limpo = deck === "Default" ? "Geral" : deck;
+  // "Cardio- Arritmias" vira "Cardio: Arritmias"
+  const limpo = (deck === "Default" ? "Geral" : deck).split("::").map((p) => p.replace(/^([\p{L}]+)-\s+/u, "$1: ").trim()).join("::");
   return opcoes.prefixo ? `${opcoes.prefixo}::${limpo}` : limpo;
 }
 
