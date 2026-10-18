@@ -899,6 +899,8 @@ function mostrarMoldura(sim) {
   document.getElementById("nav-baixo").hidden = !sim;
 }
 function ir(nome, ...args) {
+  // Sem assinatura ativa, só o Perfil (para sair ou trocar de conta) fica disponível
+  if (!assinatura?.acesso && nome !== "perfil") return telaSemAcesso();
   window.scrollTo(0, 0);
   telaAtual = nome;
   const telas = { inicio: telaInicio, decks: telaDecks, deck: telaDeck, busca: telaBusca, stats: telaStats, perfil: telaPerfil, estudo: telaEstudo };
@@ -1083,10 +1085,11 @@ function telaSemAcesso() {
     : st === "reembolsada" ? "Sua compra foi reembolsada ou contestada, por isso o acesso foi encerrado."
     : st === "atrasada" ? "O pagamento da sua assinatura está em atraso. Regularize na Kiwify para voltar a estudar."
     : `Sua assinatura terminou em ${fmtData(assinatura.expira_em)}.`;
+  telaAtual = "sem-acesso";
   tela.innerHTML = `
   <section class="fim caixa">
     <h2>Sua assinatura não está ativa</h2>
-    <p>${motivo} Assinou com outro e-mail? Saia e entre com ele.</p>
+    <p>${motivo} Você entrou como <strong>${esc(sessao?.user?.email ?? "")}</strong>. Assinou com outro e-mail? Saia e entre com ele.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
       ${CONFIG.CHECKOUT_URL ? `<a class="btn btn-primario" href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assinar agora</a>` : ""}
       <button class="btn" id="recarregar">Já paguei, verificar de novo</button>
