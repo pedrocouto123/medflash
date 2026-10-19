@@ -2,7 +2,8 @@
 // Preencha e publique: as páginas se ajustam sozinhas (campos vazios ficam ocultos).
 window.PULSE_EMPRESA = {
   marca: "Pulse Medcards",
-  razaoSocial: "",        // ex.: "Pulse Medcards Educação Ltda."
+  responsaveis: [],       // enquanto não houver CNPJ: nomes completos dos sócios, ex.: ["Fulano de Tal", "Beltrano de Tal"]
+  razaoSocial: "",        // quando houver CNPJ, ex.: "Pulse Medcards Educação Ltda." (substitui os responsáveis)
   cnpj: "",               // ex.: "00.000.000/0001-00"
   cidadeUf: "",           // ex.: "Recife/PE"
   emailContato: "",       // suporte e privacidade, ex.: "contato@pulsemedcards.com.br"

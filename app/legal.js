@@ -2,9 +2,13 @@
 (function () {
   const E = window.PULSE_EMPRESA || {};
   const marca = E.marca || "Pulse Medcards";
+  const nomes = (E.responsaveis || []).filter(Boolean);
+  const listaNomes = nomes.length > 1 ? nomes.slice(0, -1).join(", ") + " e " + nomes.at(-1) : nomes[0];
   const controlador = E.razaoSocial
     ? `${E.razaoSocial}${E.cnpj ? `, inscrita no CNPJ sob o nº ${E.cnpj}` : ""}${E.cidadeUf ? `, com sede em ${E.cidadeUf}` : ""}, responsável pela plataforma ${marca}`
-    : marca;
+    : nomes.length
+      ? `${listaNomes}, ${nomes.length > 1 ? "pessoas físicas responsáveis" : "pessoa física responsável"} pela plataforma ${marca}${E.cidadeUf ? `, em ${E.cidadeUf}` : ""}`
+      : marca;
   const valores = { marca, controlador, vigencia: E.vigencia || "", versao: E.versao || "", email: E.emailContato || "", encarregado: E.encarregado || "" };
   document.querySelectorAll("[data-e]").forEach((el) => {
     const v = valores[el.dataset.e];
