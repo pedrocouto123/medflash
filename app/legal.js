@@ -5,11 +5,12 @@
   const nomes = (E.responsaveis || []).filter(Boolean);
   const listaNomes = nomes.length > 1 ? nomes.slice(0, -1).join(", ") + " e " + nomes.at(-1) : nomes[0];
   const controlador = E.razaoSocial
-    ? `${E.razaoSocial}${E.cnpj ? `, inscrita no CNPJ sob o nº ${E.cnpj}` : ""}${E.cidadeUf ? `, com sede em ${E.cidadeUf}` : ""}, responsável pela plataforma ${marca}`
+    ? `${E.razaoSocial}${E.cnpj ? `, inscrita no CNPJ sob o nº ${E.cnpj}` : ""}${E.cidadeUf ? `, com sede em ${E.cidadeUf}` : ""}`
     : nomes.length
-      ? `${listaNomes}, ${nomes.length > 1 ? "pessoas físicas responsáveis" : "pessoa física responsável"} pela plataforma ${marca}${E.cidadeUf ? `, em ${E.cidadeUf}` : ""}`
+      ? `${listaNomes}, ${nomes.length > 1 ? "pessoas físicas" : "pessoa física"}${E.cidadeUf ? `, em ${E.cidadeUf}` : ""}`
       : marca;
-  const valores = { marca, controlador, vigencia: E.vigencia || "", versao: E.versao || "", email: E.emailContato || "", encarregado: E.encarregado || "" };
+  const papel = !E.razaoSocial && nomes.length > 1 ? "os controladores" : "o controlador";
+  const valores = { marca, controlador, papel, vigencia: E.vigencia || "", versao: E.versao || "", email: E.emailContato || "", encarregado: E.encarregado || "" };
   document.querySelectorAll("[data-e]").forEach((el) => {
     const v = valores[el.dataset.e];
     if (el.dataset.e === "email" && v) { const a = document.createElement("a"); a.href = "mailto:" + v; a.textContent = v; el.replaceChildren(a); }
