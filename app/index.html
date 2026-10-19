@@ -1293,6 +1293,7 @@ function telaEntrada(modo = "login", mensagem = "") {
   document.getElementById("ir-recuperar")?.addEventListener("click", () => telaEntrada("recuperar"));
   document.getElementById("ir-login")?.addEventListener("click", () => telaEntrada("login"));
   document.getElementById("ir-cadastro")?.addEventListener("click", () => telaEntrada("cadastro"));
+  document.getElementById("ja-tenho")?.addEventListener("click", () => telaEntrada("login"));
   document.getElementById("form-entrada").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const caixaErro = document.getElementById("erro-entrada");
@@ -2386,7 +2387,19 @@ async function iniciar() {
   if (veioDeLink && !MODO_DEMO) await new Promise((r) => setTimeout(r, 400));
   sessao = await api.sessao();
   if (sessao && veioDeLink) return telaEntrada("definir");
-  if (sessao) return aposEntrar();
+  // Volta da Kiwify (página de obrigado): ?comprou=1
+  const comprou = query.has("comprou");
+  if (comprou) history.replaceState(null, "", location.pathname);
+  if (sessao) {
+    if (comprou) toast("Pagamento recebido! Assim que a Kiwify confirmar, seu plano aparece aqui sozinho.");
+    return aposEntrar();
+  }
+  if (comprou) {
+    telaEntrada("cadastro", `<div class="msg msg-ok"><strong>Pagamento recebido!</strong> Crie sua conta usando <strong>o mesmo e-mail da compra</strong> e o plano é liberado automaticamente. Já tem conta com esse e-mail? <button type="button" class="btn-texto" id="ja-tenho" style="padding:0">Entre aqui</button>.</div>`);
+    document.querySelector(".entrada h1").textContent = "Bem-vindo ao Pulse Medcards";
+    document.querySelector(".entrada .sub").textContent = "Falta só um passo: criar sua conta para começar a estudar.";
+    return;
+  }
   telaEntrada("login");
 }
 iniciar();
