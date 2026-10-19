@@ -1,6 +1,6 @@
 // Service worker mínimo: permite instalar o app no celular.
 // Estratégia "rede primeiro": o aluno sempre recebe a versão mais nova quando está online.
-const CACHE = "pulse-medcards-v9";
+const CACHE = "pulse-medcards-v10";
 const ARQUIVOS = ["./", "./index.html", "./manifest.json", "./config.js", "./icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
