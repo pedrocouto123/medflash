@@ -2054,7 +2054,7 @@ async function telaPlanos(opcoes = {}) {
   const porMes = CONFIG.PRECO_ANUAL / 12;
   const ehMensal = assinatura?.assinante && assinatura.plano === "mensal";
   const ehAssinante = !!assinatura?.assinante;
-  const st = assinatura?.status;
+  const st = ["mensal", "anual"].includes(assinatura?.plano) ? assinatura?.status : null; // só planos pagos contam como "venceu"
 
   const titulo = ehMensal ? "Seu plano" : ehAssinante ? "Seu plano" : bloqueado
     ? (st === "reembolsada" ? "Acesso encerrado" : st ? "Sua assinatura venceu" : "Seu teste grátis terminou")
