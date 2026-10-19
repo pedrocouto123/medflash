@@ -21,7 +21,6 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false } },
 );
-const APP_URL_ENV = (Deno.env.get("APP_URL") ?? "").replace(/\/$/, "");
 
 // ---------- utilidades ----------
 async function hmacSha1Hex(key: string, msg: string): Promise<string> {
@@ -77,22 +76,12 @@ async function tokens(): Promise<{ token: string; plano: string | null }[]> {
     return m ? { token: m[2].trim(), plano: m[1].toLowerCase() } : { token: t, plano: null };
   });
 }
-async function urlDoApp(): Promise<string> {
-  if (APP_URL_ENV) return APP_URL_ENV;
-  const { data } = await supabase.from("config").select("valor").eq("chave", "app_url").maybeSingle();
-  return String(data?.valor ?? "").replace(/\/$/, "");
-}
-
-// Conta de quem pagou: usa a existente (criada no teste grátis) ou envia convite
-async function garantirUsuario(email: string, nome: string): Promise<string | null> {
+// Conta de quem pagou: vincula se já existir. Se não existir, NÃO cria nem convida:
+// a pessoa cria a conta no app com o mesmo e-mail da compra e o acesso é reconhecido pelo e-mail.
+// (Assim a liberação não depende de e-mail chegar.)
+async function contaExistente(email: string): Promise<string | null> {
   const { data: id } = await supabase.rpc("id_por_email", { p_email: email });
-  if (id) return id as string;
-  const app = await urlDoApp();
-  const { data: convite, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    data: { nome }, redirectTo: app ? `${app}/?definir=1` : undefined,
-  });
-  if (error) console.error("Falha ao convidar:", error.message);
-  return convite?.user?.id ?? null;
+  return (id as string) ?? null;
 }
 
 // ---------- handler ----------
@@ -157,7 +146,7 @@ Deno.serve(async (req) => {
   if (e2) { console.error(e2.message); return resposta(500, { erro: "falha ao consolidar" }); }
 
   if (status === "ativa") {
-    const uid = await garantirUsuario(email, nome);
+    const uid = await contaExistente(email);
     if (uid) await supabase.from("assinaturas").update({ user_id: uid, ...(nome ? { nome } : {}), kiwify_pedido: idPedido }).eq("email", email);
   }
   if (status === "reembolsada") {

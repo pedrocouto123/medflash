@@ -790,7 +790,7 @@ function criarApiSupabase(sb) {
     async sessao() { const { data } = await sb.auth.getSession(); return data.session; },
     async entrar(email, senha) {
       const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
-      if (error) throw new Error(/invalid/i.test(error.message) ? "E-mail ou senha incorretos." : error.message);
+      if (error) throw new Error(/invalid/i.test(error.message) ? "E-mail ou senha incorretos. Comprou pela Kiwify e ainda não criou sua conta? Toque em “Criar conta grátis” e use o mesmo e-mail da compra." : error.message);
       return data.session;
     },
     async sair() { await sb.auth.signOut(); },
@@ -1281,8 +1281,8 @@ function telaEntrada(modo = "login", mensagem = "") {
       </form>
       ${modo === "login" ? `
       <div class="caixa" style="padding:18px;display:grid;gap:10px">
-        <strong>Ainda não tem conta?</strong>
-        <p class="texto-2">Teste a plataforma completa por ${CONFIG.HORAS_TESTE} horas, sem cartão. Depois, planos a partir de ${dinheiro(CONFIG.PRECO_ANUAL / 12)} por mês.</p>
+        <strong>Ainda não tem conta? Ou acabou de assinar?</strong>
+        <p class="texto-2">Teste a plataforma completa por ${CONFIG.HORAS_TESTE} horas, sem cartão. Depois, planos a partir de ${dinheiro(CONFIG.PRECO_ANUAL / 12)} por mês. Se já assinou pela Kiwify, crie sua conta com o mesmo e-mail da compra: o acesso é liberado na hora.</p>
         <button type="button" class="btn" id="ir-cadastro">Criar conta grátis</button>
       </div>
       <div class="chips-estaticos">${AREAS.filter((a) => a !== "Meus decks").map((a) => `<span>${a}</span>`).join("")}</div>` : ""}
