@@ -446,9 +446,9 @@ table.tab .dir { text-align: right; }
 
 /* ---------- teste grátis e planos ---------- */
 .faixa-teste { background: var(--pulso-suave); border-bottom: 1px solid color-mix(in srgb, var(--pulso) 20%, var(--linha)); }
-.faixa-teste .miolo { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; font-size: 14px; }
+.faixa-teste .miolo { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 2px 12px; min-height: 44px; padding-top: 8px; padding-bottom: 8px; font-size: 14px; }
 .faixa-teste strong { color: var(--pulso-forte); }
-.faixa-teste .btn-texto { font-size: 14px; text-align: right; text-decoration: underline; text-underline-offset: 3px; }
+.faixa-teste .btn-texto { font-size: 14px; white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; padding: 2px 0; }
 .faixa-teste .miolo > span { white-space: nowrap; }
 .planos { display: grid; gap: 14px; margin-top: 18px; }
 @media (min-width: 760px) { .planos { grid-template-columns: 1fr 1fr; align-items: start; } }
