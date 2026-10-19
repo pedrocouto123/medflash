@@ -36,6 +36,7 @@ async function autorizado(req: Request): Promise<string | null> {
     });
     if (payload.repository !== REPOSITORIO) return "repositório não autorizado";
     if (payload.ref !== "refs/heads/main") return "branch não autorizada";
+    if (!String(payload.job_workflow_ref ?? "").startsWith(`${REPOSITORIO}/.github/workflows/importar-decks.yml@refs/heads/main`)) return "workflow não autorizado";
     return null;
   } catch (e) {
     return "token inválido: " + (e as Error).message;
@@ -52,9 +53,13 @@ Deno.serve(async (req) => {
 
   if (p.acao === "midia") {
     if (!/^[a-f0-9]{40}\.[a-z0-9]{1,5}$/.test(String(p.chave))) return resposta(400, { erro: "chave inválida" });
+    // Só imagens/áudio comuns (nada de HTML/SVG no bucket público) e no máximo 15 MB
+    const tipo = String(p.tipo || "");
+    if (!/^(image\/(png|jpeg|gif|webp|bmp|avif)|audio\/(mpeg|ogg|wav|mp4))$/.test(tipo)) return resposta(400, { erro: "tipo de arquivo não permitido" });
+    if (String(p.base64).length > 20_000_000) return resposta(413, { erro: "arquivo grande demais" });
     const bytes = Uint8Array.from(atob(String(p.base64)), (c) => c.charCodeAt(0));
     const { error } = await supabase.storage.from("midia").upload(p.chave, bytes, {
-      contentType: String(p.tipo || "application/octet-stream"), upsert: true, cacheControl: "31536000",
+      contentType: tipo, upsert: true, cacheControl: "31536000",
     });
     if (error) return resposta(500, { erro: error.message });
     return resposta(200, { url: supabase.storage.from("midia").getPublicUrl(p.chave).data.publicUrl });

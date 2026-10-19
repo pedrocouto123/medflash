@@ -126,7 +126,15 @@ Deno.serve(async (req) => {
   const textoPlano = [campo(planoK, "frequency"), campo(planoK, "name"), campo(produto, "product_name", "name")].map((x) => String(x ?? "")).join(" ").toLowerCase();
   const plano = planoDoToken ?? (/year|anual|annual|12 ?mes/.test(textoPlano) ? "anual" : "mensal");
 
-  await supabase.from("webhook_log").insert({ evento: evento || statusPedido, email, payload: p });
+  // Log mínimo (LGPD): sem CPF, telefone, endereço, IP ou dados de cartão
+  const resumo = {
+    webhook_event_type: evento || null, order_status: statusPedido || null, order_id: idPedido, subscription_id: idAssinatura,
+    Customer: { email, full_name: nome || null },
+    Product: { product_name: campo(produto, "product_name", "name") ?? null },
+    Subscription: { status: campo(assin, "status") ?? null, next_payment: proximo, plan: { name: campo(planoK, "name") ?? null, frequency: campo(planoK, "frequency") ?? null } },
+    plano_detectado: plano,
+  };
+  await supabase.from("webhook_log").insert({ evento: evento || statusPedido, email, payload: resumo });
   if (!email) return resposta(200, { ok: true, ignorado: "sem e-mail do cliente" });
   const chave = idAssinatura ?? idPedido ?? `${email}:${plano}`;
 

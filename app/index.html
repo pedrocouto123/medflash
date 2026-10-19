@@ -805,7 +805,8 @@ function criarApiSupabase(sb) {
     salvarCard: (deck, card, frente, verso) => rpc("salvar_card", { p_deck: deck, p_card: card, p_frente: frente, p_verso: verso }),
     excluirCard: (id) => rpc("excluir_card", { p_card: id }),
     copiarCard: (card, deck) => rpc("copiar_card", { p_card: card, p_deck: deck }),
-    async cardsDoDeck(id) { const { data, error } = await sb.from("cards").select("id, frente, verso").eq("deck_id", id).order("ordem"); erro(error); return data; },
+    async cardsDoDeck(id) { return await rpc("cards_do_meu_deck", { p_deck: id }) ?? []; },
+    async verCard(id) { return (await rpc("ver_card", { p_card: id }))?.[0] ?? null; },
   };
 }
 
@@ -918,8 +919,9 @@ function criarApiDemo() {
     async buscar(termo, soFav) {
       const t = (termo || "").toLowerCase();
       return cards.filter((c) => (!soFav || favs.has(c.card_id)) && (!t || (c.frente + c.verso + deckNome(c.deck_id)).toLowerCase().includes(t)))
-        .slice(0, 60).map((c) => ({ ...c, deck: deckNome(c.deck_id), favorito: favs.has(c.card_id), estado: prog[c.card_id]?.estado ?? null, vencimento: prog[c.card_id]?.vencimento ?? null, intervalo: prog[c.card_id]?.intervalo ?? null }));
+        .slice(0, 60).map((c) => ({ ...c, frente: textoPuro(c.frente).slice(0, 300), verso: null, deck: deckNome(c.deck_id), favorito: favs.has(c.card_id), estado: prog[c.card_id]?.estado ?? null, vencimento: prog[c.card_id]?.vencimento ?? null, intervalo: prog[c.card_id]?.intervalo ?? null }));
     },
+    async verCard(id) { const c = cards.find((x) => x.card_id === id); return c ? { card_id: c.card_id, deck: deckNome(c.deck_id), frente: c.frente, verso: c.verso } : null; },
     async cardDoDia(salto) {
       const semente = Math.floor(Date.now() / DIA) * 31 + salto * 7;
       const c = cards[semente % cards.length];
@@ -997,7 +999,34 @@ const novosPorDia = () => guardar.ler("mf_novos_dia", CONFIG.NOVOS_POR_DIA_PADRA
 const ico = (nome, cls = "") => `<svg class="ico ${cls}" aria-hidden="true"><use href="#i-${nome}"/></svg>`;
 const N = (v) => Number(v ?? 0);
 const semAcento = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const textoPuro = (html) => { const d = document.createElement("div"); d.innerHTML = String(html ?? "").replace(/<hr[^>]*>/gi, " — ").replace(/<br\s*\/?>/gi, " "); return d.textContent.replace(/\s+/g, " ").trim(); };
+// HTML inerte: DOMParser não executa scripts nem carrega imagens (evita onerror=... em conteúdo de card)
+const inerte = (html) => new DOMParser().parseFromString(`<body>${String(html ?? "")}</body>`, "text/html").body;
+const textoPuro = (html) => inerte(String(html ?? "").replace(/<hr[^>]*>/gi, " — ").replace(/<br\s*\/?>/gi, " ")).textContent.replace(/\s+/g, " ").trim();
+// Sanitizador de conteúdo de card: só tags/atributos de formatação; nada de eventos, scripts, iframes ou links javascript:
+const TAGS_OK = new Set("A B I U S EM STRONG SMALL SUB SUP MARK BR HR P DIV SPAN UL OL LI TABLE THEAD TBODY TFOOT TR TD TH CAPTION COLGROUP COL IMG H1 H2 H3 H4 H5 H6 BLOCKQUOTE PRE CODE FONT CENTER DL DT DD RUBY RT RP DETAILS SUMMARY FIGURE FIGCAPTION".split(" "));
+const ATRIBS_OK = new Set(["class", "id", "style", "src", "alt", "title", "href", "colspan", "rowspan", "width", "height", "align", "valign", "color", "face", "size", "dir", "lang"]);
+const URL_OK = (v, img) => { const s = v.trim().toLowerCase(); return img ? /^(https:|data:image\/(png|jpe?g|gif|webp);|\/|\.\/|[a-z0-9_-]+\.)/.test(s) || !/^[a-z]+:/.test(s) : /^(https?:|mailto:|#)/.test(s); };
+function limpar(html) {
+  const raiz = inerte(html);
+  const andar = (no) => {
+    for (const el of [...no.children]) {
+      if (!TAGS_OK.has(el.tagName)) {
+        if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|FORM|LINK|META|BASE|SVG|MATH|TEMPLATE|NOSCRIPT|FRAME|FRAMESET|AUDIO|VIDEO|SOURCE|INPUT|BUTTON|TEXTAREA|SELECT)$/.test(el.tagName)) { el.remove(); continue; }
+        el.replaceWith(...el.childNodes); continue;
+      }
+      for (const a of [...el.attributes]) {
+        const n = a.name.toLowerCase();
+        if (!ATRIBS_OK.has(n)) { el.removeAttribute(a.name); continue; }
+        if ((n === "src" || n === "href") && !URL_OK(a.value, n === "src")) el.removeAttribute(a.name);
+        if (n === "style" && /url\s*\(|expression|javascript:|@import/i.test(a.value)) el.removeAttribute(a.name);
+      }
+      if (el.tagName === "A") { el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener noreferrer"); }
+      andar(el);
+    }
+  };
+  andar(raiz);
+  return raiz.innerHTML;
+}
 const caminho = (nome) => String(nome).split("::").join(" › ");
 const folhaDoNome = (nome) => String(nome).split("::").at(-1);
 
@@ -1441,7 +1470,7 @@ async function desenharCardDoDia() {
       <button class="btn-ico" id="outro-card" aria-label="Mostrar outro card">${ico("embaralhar", "ico-p")}</button>
     </div>
     <div class="pergunta">${esc(textoPuro(c.frente))}</div>
-    <div class="resposta" id="resposta-dia" hidden>${resposta}</div>
+    <div class="resposta" id="resposta-dia" hidden>${limpar(resposta)}</div>
     <div class="rodape"><span class="etiqueta">${esc(caminho(c.deck))}</span><button class="btn-texto" id="ver-resposta">Ver resposta</button></div>`;
   document.getElementById("outro-card").onclick = () => { saltoCardDia++; desenharCardDoDia(); };
   document.getElementById("ver-resposta").onclick = (e) => {
@@ -1520,7 +1549,7 @@ const MEUS = "Meus decks";
 const ehMeu = (nome) => String(nome).startsWith(MEUS + "::");
 const meusDecks = (lista) => lista.filter((d) => ehMeu(d.nome));
 const paraHtml = (t) => esc(String(t).trim()).replace(/\r?\n/g, "<br>");
-const paraTexto = (h) => { const d = document.createElement("div"); d.innerHTML = String(h).replace(/<br\s*\/?>/gi, "\n").replace(/<\/(div|p|li)>/gi, "\n"); return d.textContent.trim(); };
+const paraTexto = (h) => inerte(String(h).replace(/<br\s*\/?>/gi, "\n").replace(/<\/(div|p|li)>/gi, "\n")).textContent.trim();
 const SEP_RESPOSTA = /<hr[^>]*id=["']?answer["']?[^>]*>/i;
 const editavel = (c) => !/<(img|table|video|audio|svg)/i.test(c.frente + c.verso);
 
@@ -1770,7 +1799,7 @@ async function telaEstudo(ids, nome, modo = "normal") {
       <article class="caixa card" id="card" aria-live="polite">
         <div class="marca-dagua" style="background-image:${marcaDagua};color:var(--tinta)"></div>
         <span class="tipo-card">${tipo}</span>
-        <div class="card-conteudo virando">${virado ? atual.verso : atual.frente}</div>
+        <div class="card-conteudo virando">${limpar(virado ? atual.verso : atual.frente)}</div>
       </article>
       <div class="acoes">
         ${virado ? `
@@ -1909,9 +1938,12 @@ async function telaBusca(termoInicial = "", soFavInicial = false) {
       } catch { toast("Não foi possível salvar o favorito."); }
     }));
   }
-  function verCard(r) {
+  async function verCard(r) {
+    let c;
+    try { c = await api.verCard(r.card_id); } catch (e) { return toast(e.message); }
+    if (!c) return toast("Card não encontrado.");
     const f = abrirFolha(`<div class="folha-topo"><span>${esc(caminho(r.deck))}</span><button class="btn-ico" data-fechar aria-label="Fechar">${ico("fechar")}</button></div>
-      <article class="caixa card" oncontextmenu="return false"><div class="card-conteudo">${r.verso}</div></article>
+      <article class="caixa card" oncontextmenu="return false"><div class="card-conteudo">${limpar(c.verso)}</div></article>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">${estadoDe(r)}
         ${ehMeu(r.deck) ? "" : `<button class="btn" id="copiar-folha">${ico("copiar", "ico-p")} Copiar para meu deck</button>`}</div>`, "Card");
     f.$("[data-fechar]").focus();

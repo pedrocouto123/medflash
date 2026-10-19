@@ -86,8 +86,11 @@ export function renderTemplate(tpl, campos, ctx) {
 export function limparHtml(html) {
   return String(html)
     .replace(/\[sound:[^\]]*\]/g, "")                 // áudio não é suportado
-    .replace(/<script[\s\S]*?<\/script>/gi, "")       // nunca executar scripts dos decks
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "") // remove onclick etc.
+    // Defesa em profundidade (o app também sanitiza ao exibir):
+    .replace(/<(script|style|iframe|object|embed|form|template|noscript|svg|math)\b[\s\S]*?<\/\1\s*>/gi, "") // blocos perigosos inteiros
+    .replace(/<\/?(script|style|iframe|object|embed|form|link|meta|base|frame|frameset|input|button|textarea|select|svg|math)\b[^>]*>/gi, "") // tags soltas
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "") // remove onclick, onerror etc.
+    .replace(/\b(href|src|action|formaction|xlink:href)\s*=\s*("|')?\s*(javascript|vbscript|data:text\/html)[^"'\s>]*("|')?/gi, "") // links perigosos
     .trim();
 }
 

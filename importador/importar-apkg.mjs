@@ -44,7 +44,7 @@ if (!arquivos.length) {
 
 const MIME = {
   jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif",
-  webp: "image/webp", svg: "image/svg+xml", bmp: "image/bmp", avif: "image/avif",
+  webp: "image/webp", bmp: "image/bmp", avif: "image/avif", // SVG fica de fora: pode conter script
 };
 
 // ---------- leitura do .apkg ----------
@@ -242,7 +242,8 @@ async function enviar(todos, midias) {
       if (!ler) { faltando++; continue; }
       const chaveArq = chaveMidia(original);
       const ext = chaveArq.split(".").pop();
-      try { mapa[nome] = await destino.midia(chaveArq, MIME[ext] ?? "application/octet-stream", ler()); }
+      if (!MIME[ext]) continue; // formatos fora da lista (svg, html etc.) não sobem
+      try { mapa[nome] = await destino.midia(chaveArq, MIME[ext], ler()); }
       catch (e) { throw new Error(`Erro ao enviar imagem ${original}: ${e.message}`); }
       if (++enviadas % 50 === 0) console.log(`   ${enviadas}/${nomes.size} imagens`);
     }
