@@ -462,6 +462,7 @@ table.tab .dir { text-align: right; }
 .preco s { color: var(--tinta-3); font-size: 17px; }
 .preco b { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
 .preco span { color: var(--tinta-2); }
+.plano .forma-pag { color: var(--tinta-2); font-size: 13px; margin-top: -8px; }
 .plano .equivale { color: var(--tinta-2); font-size: 14px; }
 .plano .equivale strong { color: var(--revisar); }
 .inclui { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
@@ -2072,6 +2073,7 @@ async function telaPlanos(opcoes = {}) {
       <span class="selo-economia">Economize ${economia}%</span>
       <h2>Plano anual</h2>
       <div class="preco"><s>${dinheiro(cheio)}</s><b>${dinheiro(CONFIG.PRECO_ANUAL)}</b><span>por ano</span></div>
+      <p class="forma-pag">em 1x no cartão ou Pix</p>
       <p class="equivale">Equivale a <strong>${dinheiro(porMes)} por mês</strong>. Você economiza ${dinheiro(cheio - CONFIG.PRECO_ANUAL)} no ano.</p>
       ${CONFIG.CHECKOUT_ANUAL ? `<a class="btn btn-primario btn-largo" data-checkout href="${esc(linkCheckout(CONFIG.CHECKOUT_ANUAL))}" target="_blank" rel="noopener">${ehMensal ? "Migrar para o anual" : "Assinar o anual"}</a>` : `<button class="btn btn-largo" disabled>Pagamento em configuração</button>`}
     </section>`;
