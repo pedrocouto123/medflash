@@ -2073,7 +2073,7 @@ async function telaPlanos(opcoes = {}) {
       <span class="selo-economia">Economize ${economia}%</span>
       <h2>Plano anual</h2>
       <div class="preco"><s>${dinheiro(cheio)}</s><b>${dinheiro(CONFIG.PRECO_ANUAL)}</b><span>por ano</span></div>
-      <p class="forma-pag">em 1x no cartão ou Pix</p>
+      <p class="forma-pag">em 1x no cartão ou Pix<br>Ou em até 12x de R$ 25,55</p>
       <p class="equivale">Equivale a <strong>${dinheiro(porMes)} por mês</strong>. Você economiza ${dinheiro(cheio - CONFIG.PRECO_ANUAL)} no ano.</p>
       ${CONFIG.CHECKOUT_ANUAL ? `<a class="btn btn-primario btn-largo" data-checkout href="${esc(linkCheckout(CONFIG.CHECKOUT_ANUAL))}" target="_blank" rel="noopener">${ehMensal ? "Migrar para o anual" : "Assinar o anual"}</a>` : `<button class="btn btn-largo" disabled>Pagamento em configuração</button>`}
     </section>`;
