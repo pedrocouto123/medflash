@@ -448,7 +448,8 @@ table.tab .dir { text-align: right; }
 .faixa-teste { background: var(--pulso-suave); border-bottom: 1px solid color-mix(in srgb, var(--pulso) 20%, var(--linha)); }
 .faixa-teste .miolo { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; font-size: 14px; }
 .faixa-teste strong { color: var(--pulso-forte); }
-.faixa-teste .btn-texto { font-size: 14px; white-space: nowrap; }
+.faixa-teste .btn-texto { font-size: 14px; text-align: right; text-decoration: underline; text-underline-offset: 3px; }
+.faixa-teste .miolo > span { white-space: nowrap; }
 .planos { display: grid; gap: 14px; margin-top: 18px; }
 @media (min-width: 760px) { .planos { grid-template-columns: 1fr 1fr; align-items: start; } }
 .plano { padding: 22px 20px; display: grid; gap: 12px; position: relative; }
@@ -563,7 +564,7 @@ table.tab .dir { text-align: right; }
   </div>
 </header>
 
-<div class="faixa-teste" id="faixa-teste" hidden><div class="miolo"><span id="faixa-texto"></span><button class="btn-texto" type="button" id="faixa-planos">Ver planos</button></div></div>
+<div class="faixa-teste" id="faixa-teste" hidden><div class="miolo"><span id="faixa-texto"></span><button class="btn-texto" type="button" id="faixa-planos">Clique aqui e assine na promoção</button></div></div>
 <main class="miolo" id="tela"></main>
 
 <nav class="nav-baixo" id="nav-baixo" aria-label="Principal" hidden>
