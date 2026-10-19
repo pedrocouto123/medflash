@@ -10,6 +10,8 @@ const config = {
   SUPABASE_URL: env("SUPABASE_URL").replace(/\/$/, ""),
   SUPABASE_ANON_KEY: env("SUPABASE_ANON_KEY"),
   CHECKOUT_URL: env("CHECKOUT_URL"),
+  CHECKOUT_MENSAL: env("CHECKOUT_MENSAL"),
+  CHECKOUT_ANUAL: env("CHECKOUT_ANUAL"),
   SUPORTE: env("SUPORTE"),
 };
 

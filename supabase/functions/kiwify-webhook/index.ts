@@ -1,16 +1,17 @@
 // =====================================================================
 // Pulse Medcards — Webhook da Kiwify
-// Recebe as notificações de venda/assinatura e libera ou bloqueia o acesso.
+// Recebe as notificações de venda/assinatura (planos mensal e anual) e libera ou corta o acesso.
 //
-// Segredos necessários (definidos automaticamente pelo GitHub Actions,
-// ou manualmente em Supabase > Edge Functions > Secrets):
-//   KIWIFY_TOKEN   -> o "token" exibido ao criar o webhook na Kiwify
-//   APP_URL        -> (opcional) endereço do app, ex.: https://medflash.vercel.app
-//                     Se vazio, usa public.config chave 'app_url'.
-// (SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY já existem automaticamente.)
+// Regras:
+//   - Pagamento aprovado/renovado: acesso até o FIM DO DIA do próximo vencimento (horário de Brasília).
+//     Vence dia 10 -> o acesso cai à 00:00 do dia 11 se a renovação não for paga.
+//   - Atrasada ou cancelada: mantém a data já paga (não estende).
+//   - Reembolso ou chargeback: corta na hora e desconecta os aparelhos.
+//   - Mensal e anual ao mesmo tempo (migração): vale a data mais distante.
 //
-// IMPORTANTE: a verificação de JWT fica desativada (supabase/config.toml),
-// porque a Kiwify não envia token do Supabase.
+// Tokens dos webhooks: segredo KIWIFY_TOKEN e/ou public.config chave 'kiwify_tokens'
+// (vários separados por vírgula: um por webhook criado na Kiwify).
+// A verificação de JWT fica desativada: a segurança é a assinatura HMAC da Kiwify.
 // =====================================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -19,25 +20,20 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false } },
 );
-const KIWIFY_TOKEN = Deno.env.get("KIWIFY_TOKEN") ?? "";
-const APP_URL = (Deno.env.get("APP_URL") ?? "").replace(/\/$/, "");
+const APP_URL_ENV = (Deno.env.get("APP_URL") ?? "").replace(/\/$/, "");
 
 // ---------- utilidades ----------
 async function hmacSha1Hex(key: string, msg: string): Promise<string> {
-  const k = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-1" }, false, ["sign"],
-  );
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(key), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(msg));
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-
 function igualSeguro(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let r = 0;
   for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return r === 0;
 }
-
 // Lê um campo tolerando variações de maiúsculas/minúsculas no payload
 function campo(obj: any, ...nomes: string[]): any {
   if (!obj || typeof obj !== "object") return undefined;
@@ -48,88 +44,68 @@ function campo(obj: any, ...nomes: string[]): any {
   }
   return undefined;
 }
+const resposta = (status: number, corpo: Record<string, unknown>) =>
+  new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json" } });
 
-function data(v: unknown): string | null {
+// Data (AAAA-MM-DD) no horário de Brasília
+function diaBrasilia(v: unknown): string | null {
   if (!v) return null;
-  const d = new Date(String(v).replace(" ", "T"));
-  return isNaN(d.getTime()) ? null : d.toISOString();
+  const s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s.replace(" ", "T"));
+  if (isNaN(d.getTime())) return null;
+  return new Date(d.getTime() - 3 * 3600000).toISOString().slice(0, 10);
+}
+// Fim do dia do vencimento = 00:00 do dia seguinte em Brasília (UTC-3)
+function fimDoDia(dia: string): string {
+  const d = new Date(`${dia}T00:00:00-03:00`);
+  return new Date(d.getTime() + 86400000).toISOString();
+}
+function somarPeriodo(plano: string): string {
+  const d = new Date(Date.now() - 3 * 3600000);
+  if (plano === "anual") d.setUTCFullYear(d.getUTCFullYear() + 1); else d.setUTCMonth(d.getUTCMonth() + 1);
+  return fimDoDia(d.toISOString().slice(0, 10));
 }
 
-function somarDias(dias: number): string {
-  return new Date(Date.now() + dias * 86400000).toISOString();
+async function tokens(): Promise<string[]> {
+  const lista = (Deno.env.get("KIWIFY_TOKEN") ?? "").split(",");
+  const { data } = await supabase.from("config").select("valor").eq("chave", "kiwify_tokens").maybeSingle();
+  if (data?.valor) lista.push(...String(data.valor).split(","));
+  return lista.map((t) => t.trim()).filter(Boolean);
 }
-
-function resposta(status: number, corpo: Record<string, unknown>) {
-  return new Response(JSON.stringify(corpo), {
-    status, headers: { "Content-Type": "application/json" },
-  });
-}
-
-// Duração aproximada do plano, usada quando a Kiwify não informa a próxima cobrança
-function diasDoPlano(freq: string | undefined): number {
-  const f = (freq ?? "").toLowerCase();
-  if (f.includes("year") || f.includes("anual")) return 366;
-  if (f.includes("semi")) return 184;
-  if (f.includes("quarter") || f.includes("trimes")) return 93;
-  if (f.includes("week") || f.includes("seman")) return 8;
-  return 32; // mensal (padrão)
-}
-
-// Endereço do app: segredo APP_URL ou, se vazio, public.config (chave 'app_url')
-let _urlApp: string | null = null;
 async function urlDoApp(): Promise<string> {
-  if (APP_URL) return APP_URL;
-  if (_urlApp !== null) return _urlApp;
+  if (APP_URL_ENV) return APP_URL_ENV;
   const { data } = await supabase.from("config").select("valor").eq("chave", "app_url").maybeSingle();
-  _urlApp = (data?.valor ?? "").replace(/\/$/, "");
-  return _urlApp;
+  return String(data?.valor ?? "").replace(/\/$/, "");
 }
 
-// Cria a conta do aluno (se ainda não existir) e envia o e-mail de convite
+// Conta de quem pagou: usa a existente (criada no teste grátis) ou envia convite
 async function garantirUsuario(email: string, nome: string): Promise<string | null> {
-  const { data: existente } = await supabase.from("assinaturas")
-    .select("user_id").eq("email", email).maybeSingle();
-  if (existente?.user_id) return existente.user_id;
-
+  const { data: id } = await supabase.rpc("id_por_email", { p_email: email });
+  if (id) return id as string;
   const app = await urlDoApp();
   const { data: convite, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    data: { nome },
-    redirectTo: app ? `${app}/?definir=1` : undefined,
+    data: { nome }, redirectTo: app ? `${app}/?definir=1` : undefined,
   });
-  if (!error && convite?.user) return convite.user.id;
-
-  // Já existe usuário com esse e-mail (ex.: assinante que voltou): procura o id
-  const msg = (error?.message ?? "").toLowerCase();
-  if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
-    for (let pagina = 1; pagina <= 50; pagina++) {
-      const { data: lista } = await supabase.auth.admin.listUsers({ page: pagina, perPage: 1000 });
-      const u = lista?.users?.find((x) => x.email?.toLowerCase() === email);
-      if (u) return u.id;
-      if (!lista || lista.users.length < 1000) break;
-    }
-  }
-  console.error("Falha ao criar/convidar usuário:", error?.message);
-  return null;
+  if (error) console.error("Falha ao convidar:", error.message);
+  return convite?.user?.id ?? null;
 }
 
 // ---------- handler ----------
 Deno.serve(async (req) => {
   if (req.method !== "POST") return resposta(405, { erro: "use POST" });
-
   const corpo = await req.text();
 
-  // 1) Autenticidade: a Kiwify assina o corpo com HMAC-SHA1 usando o token do webhook
-  //    e envia o resultado no parâmetro ?signature= da URL.
-  if (!KIWIFY_TOKEN) return resposta(500, { erro: "KIWIFY_TOKEN não configurado" });
-  const assinatura = new URL(req.url).searchParams.get("signature") ?? "";
-  const esperado = await hmacSha1Hex(KIWIFY_TOKEN, corpo);
-  if (!assinatura || !igualSeguro(assinatura.toLowerCase(), esperado)) {
-    return resposta(401, { erro: "assinatura inválida" });
-  }
+  // 1) Autenticidade: HMAC-SHA1 do corpo com o token do webhook, enviado em ?signature=
+  const lista = await tokens();
+  if (!lista.length) return resposta(500, { erro: "token da Kiwify não configurado" });
+  const assinatura = (new URL(req.url).searchParams.get("signature") ?? "").toLowerCase();
+  let valida = false;
+  for (const t of lista) if (assinatura && igualSeguro(assinatura, await hmacSha1Hex(t, corpo))) valida = true;
+  if (!valida) return resposta(401, { erro: "assinatura inválida" });
 
   let p: any;
   try { p = JSON.parse(corpo); } catch { return resposta(400, { erro: "JSON inválido" }); }
-  // Alguns envios vêm embrulhados em { order: {...} }
   if (p?.order && typeof p.order === "object" && !campo(p, "Customer")) p = p.order;
 
   const evento = String(campo(p, "webhook_event_type") ?? "").toLowerCase();
@@ -138,73 +114,43 @@ Deno.serve(async (req) => {
   const email = String(campo(cliente, "email") ?? "").trim().toLowerCase();
   const nome = String(campo(cliente, "full_name", "name", "first_name") ?? "").trim();
   const assin = campo(p, "Subscription", "subscription") ?? {};
-  const plano = campo(assin, "plan") ?? {};
+  const planoK = campo(assin, "plan") ?? {};
+  const produto = campo(p, "Product", "product") ?? {};
   const idAssinatura = String(campo(p, "subscription_id") ?? campo(assin, "id") ?? "") || null;
   const idPedido = String(campo(p, "order_id", "order_ref") ?? "") || null;
-  const proxCobranca = data(campo(assin, "next_payment", "charges_next_payment", "next_charge"));
-  const nomePlano = String(campo(plano, "name") ?? campo(campo(p, "Product") ?? {}, "product_name") ?? "") || null;
-  const freq = String(campo(plano, "frequency") ?? "");
+  const proximo = diaBrasilia(campo(assin, "next_payment", "charges_next_payment", "next_charge"));
+  const textoPlano = [campo(planoK, "frequency"), campo(planoK, "name"), campo(produto, "product_name", "name")].map((x) => String(x ?? "")).join(" ").toLowerCase();
+  const plano = /year|anual|annual|12 ?mes/.test(textoPlano) ? "anual" : "mensal";
 
   await supabase.from("webhook_log").insert({ evento: evento || statusPedido, email, payload: p });
-
   if (!email) return resposta(200, { ok: true, ignorado: "sem e-mail do cliente" });
+  const chave = idAssinatura ?? idPedido ?? `${email}:${plano}`;
 
-  // 2) Traduz o evento da Kiwify em situação de acesso
-  let status: string | null = null;
-  let expira: string | null = null;
+  // 2) Evento -> situação desta assinatura
+  const aprovado = ["order_approved", "compra_aprovada", "subscription_renewed"].includes(evento) || (!evento && statusPedido === "paid");
+  const reembolso = ["order_refunded", "compra_reembolsada", "chargeback", "order_chargedback"].includes(evento) || ["refunded", "chargedback"].includes(statusPedido);
+  const { data: anterior } = await supabase.from("kiwify_assinaturas").select("expira_em").eq("id", chave).maybeSingle();
 
-  const aprovado = ["order_approved", "compra_aprovada", "subscription_renewed"].includes(evento)
-    || (!evento && statusPedido === "paid");
-  const reembolso = ["order_refunded", "compra_reembolsada", "chargeback"].includes(evento)
-    || ["refunded", "chargedback"].includes(statusPedido);
+  let status: string, expira: string | null;
+  if (reembolso) { status = "reembolsada"; expira = new Date().toISOString(); }
+  else if (aprovado) { status = "ativa"; expira = proximo ? fimDoDia(proximo) : somarPeriodo(plano); }
+  else if (evento === "subscription_canceled") { status = "cancelada"; expira = anterior?.expira_em ?? (proximo ? fimDoDia(proximo) : new Date().toISOString()); }
+  else if (evento === "subscription_late") { status = "atrasada"; expira = anterior?.expira_em ?? (proximo ? fimDoDia(proximo) : new Date().toISOString()); }
+  else return resposta(200, { ok: true, ignorado: evento || statusPedido }); // pix/boleto gerado, carrinho abandonado etc.
 
-  if (reembolso) {
-    status = "reembolsada"; expira = new Date().toISOString();              // bloqueia na hora
-  } else if (aprovado) {
-    // Vale até a próxima cobrança + 1 dia de folga (cobre fuso horário e atraso na confirmação)
-    status = "ativa";
-    expira = proxCobranca
-      ? new Date(new Date(proxCobranca).getTime() + 86400000).toISOString()
-      : somarDias(diasDoPlano(freq) + 1);
-  } else if (evento === "subscription_canceled") {
-    status = "cancelada"; expira = proxCobranca;                             // mantém até o fim do período pago
-  } else if (evento === "subscription_late") {
-    status = "atrasada"; expira = proxCobranca ?? new Date().toISOString();  // carência definida em config
-  } else {
-    // boleto/pix gerado, carrinho abandonado, compra recusada: nada a fazer
-    return resposta(200, { ok: true, ignorado: evento || statusPedido });
+  // 3) Grava e consolida
+  const { error } = await supabase.from("kiwify_assinaturas").upsert({ id: chave, email, plano, status, expira_em: expira, atualizado_em: new Date().toISOString() });
+  if (error) { console.error(error.message); return resposta(500, { erro: "falha ao gravar" }); } // a Kiwify reenvia
+  const { error: e2 } = await supabase.rpc("recalcular_assinatura", { p_email: email });
+  if (e2) { console.error(e2.message); return resposta(500, { erro: "falha ao consolidar" }); }
+
+  if (status === "ativa") {
+    const uid = await garantirUsuario(email, nome);
+    if (uid) await supabase.from("assinaturas").update({ user_id: uid, ...(nome ? { nome } : {}), kiwify_pedido: idPedido }).eq("email", email);
   }
-
-  // 3) Cria a conta na primeira compra
-  let userId: string | null = null;
-  if (status === "ativa") userId = await garantirUsuario(email, nome);
-
-  // 4) Grava a assinatura
-  const { data: anterior } = await supabase.from("assinaturas")
-    .select("expira_em, user_id").eq("email", email).maybeSingle();
-
-  // Cancelamento sem data informada: preserva a data já conhecida
-  if (status === "cancelada" && !expira) expira = anterior?.expira_em ?? new Date().toISOString();
-
-  const registro: Record<string, unknown> = {
-    email, status, expira_em: expira, atualizado_em: new Date().toISOString(),
-  };
-  if (nome) registro.nome = nome;
-  if (idAssinatura) registro.kiwify_assinatura = idAssinatura;
-  if (idPedido) registro.kiwify_pedido = idPedido;
-  if (nomePlano) registro.plano = nomePlano;
-  if (userId ?? anterior?.user_id) registro.user_id = userId ?? anterior?.user_id;
-
-  const { error } = await supabase.from("assinaturas").upsert(registro, { onConflict: "email" });
-  if (error) {
-    console.error("Erro ao gravar assinatura:", error.message);
-    return resposta(500, { erro: "falha ao gravar" }); // a Kiwify tentará reenviar
+  if (status === "reembolsada") {
+    const { data: a } = await supabase.from("assinaturas").select("user_id, status").eq("email", email).maybeSingle();
+    if (a?.user_id && a.status === "reembolsada") await supabase.from("dispositivos").delete().eq("user_id", a.user_id);
   }
-
-  // Aluno que perdeu acesso é desconectado de todos os aparelhos
-  if (status === "reembolsada" && registro.user_id) {
-    await supabase.from("dispositivos").delete().eq("user_id", registro.user_id as string);
-  }
-
-  return resposta(200, { ok: true, email, status, expira_em: expira });
+  return resposta(200, { ok: true, email, plano, status, expira_em: expira });
 });

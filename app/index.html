@@ -116,7 +116,7 @@ main.miolo { padding-top: 8px; padding-bottom: calc(110px + env(safe-area-inset-
   background: color-mix(in srgb, var(--superficie) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--linha);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
 }
 .nav-baixo button {
   border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 4px;
@@ -444,6 +444,33 @@ table.tab .dir { text-align: right; }
 .deck-achado:hover strong { color: var(--pulso); }
 .mais-res { width: 100%; border: 0; border-bottom: 1px solid var(--linha); background: none; color: var(--pulso); font-weight: 700; padding: 12px 16px; text-align: left; }
 
+/* ---------- teste grátis e planos ---------- */
+.faixa-teste { background: var(--pulso-suave); border-bottom: 1px solid color-mix(in srgb, var(--pulso) 20%, var(--linha)); }
+.faixa-teste .miolo { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; font-size: 14px; }
+.faixa-teste strong { color: var(--pulso-forte); }
+.faixa-teste .btn-texto { font-size: 14px; white-space: nowrap; }
+.planos { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 760px) { .planos { grid-template-columns: 1fr 1fr; align-items: start; } }
+.plano { padding: 22px 20px; display: grid; gap: 12px; position: relative; }
+.plano-destaque { border: 2px solid var(--pulso); box-shadow: var(--sombra); }
+.plano .selo-economia { position: absolute; top: -12px; right: 16px; background: var(--pulso); color: #fff; font-size: 13px; font-weight: 800; padding: 4px 12px; border-radius: 999px; }
+:root[data-theme="dark"] .plano .selo-economia { color: #1A0E14; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .plano .selo-economia { color: #1A0E14; } }
+.plano h2 { font-size: 20px; font-weight: 700; }
+.preco { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.preco s { color: var(--tinta-3); font-size: 17px; }
+.preco b { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.preco span { color: var(--tinta-2); }
+.plano .equivale { color: var(--tinta-2); font-size: 14px; }
+.plano .equivale strong { color: var(--revisar); }
+.inclui { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.inclui li { display: flex; gap: 10px; align-items: flex-start; }
+.inclui li .ico { color: var(--revisar); width: 20px; height: 20px; margin-top: 2px; }
+.aguardando { padding: 16px; display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+.aguardando .pontinho { width: 10px; height: 10px; border-radius: 99px; background: var(--pulso); flex: none; animation: pulsar 1.2s ease-in-out infinite; }
+@keyframes pulsar { 50% { opacity: .3; transform: scale(.8); } }
+.plano-atual { padding: 18px 20px; display: grid; gap: 6px; margin-top: 18px; }
+
 /* ---------- transições ---------- */
 .ocupado-leve { opacity: .6; transition: opacity .15s ease; }
 #tela.ocupado { opacity: .5; pointer-events: none; transition: opacity .15s ease; }
@@ -505,6 +532,8 @@ table.tab .dir { text-align: right; }
     <symbol id="i-hospital" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16.5" rx="2.5"/><path d="M12 8v6.5M8.8 11.2h6.4"/></symbol>
     <symbol id="i-livro" viewBox="0 0 24 24"><path d="M4.5 5.5a2 2 0 0 1 2-2H19v14.5H6.5a2 2 0 0 0-2 2Z"/><path d="M4.5 19.5a2 2 0 0 0 2 2H19v-3.5"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-coroa" viewBox="0 0 24 24"><path d="M4 8l4 4 4-7 4 7 4-4-1.5 11h-13Z"/></symbol>
     <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-lapis" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></symbol>
     <symbol id="i-lixo" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/></symbol>
@@ -525,6 +554,7 @@ table.tab .dir { text-align: right; }
       <button type="button" data-ir="decks">Decks</button>
       <button type="button" data-ir="busca">Buscar</button>
       <button type="button" data-ir="stats">Estatísticas</button>
+      <button type="button" data-ir="planos" class="so-teste" hidden>Planos</button>
     </nav>
     <div class="topo-acoes">
       <button class="btn-ico" type="button" id="alternar-tema" aria-label="Alternar tema claro ou escuro"><svg class="ico"><use href="#i-lua"/></svg></button>
@@ -533,6 +563,7 @@ table.tab .dir { text-align: right; }
   </div>
 </header>
 
+<div class="faixa-teste" id="faixa-teste" hidden><div class="miolo"><span id="faixa-texto"></span><button class="btn-texto" type="button" id="faixa-planos">Ver planos</button></div></div>
 <main class="miolo" id="tela"></main>
 
 <nav class="nav-baixo" id="nav-baixo" aria-label="Principal" hidden>
@@ -540,6 +571,7 @@ table.tab .dir { text-align: right; }
   <button type="button" data-ir="decks"><svg class="ico"><use href="#i-decks"/></svg>Decks</button>
   <button type="button" data-ir="busca"><svg class="ico"><use href="#i-busca"/></svg>Buscar</button>
   <button type="button" data-ir="stats"><svg class="ico"><use href="#i-stats"/></svg>Estatísticas</button>
+  <button type="button" data-ir="planos" class="so-teste" hidden><svg class="ico"><use href="#i-coroa"/></svg>Planos</button>
 </nav>
 
 <div class="toast" id="toast" role="status" hidden></div>
@@ -558,6 +590,12 @@ const CONFIG = Object.assign({
   SUPABASE_URL: "",
   SUPABASE_ANON_KEY: "",
   CHECKOUT_URL: "",
+  // Links de checkout da Kiwify (um produto para cada plano)
+  CHECKOUT_MENSAL: "",
+  CHECKOUT_ANUAL: "",
+  PRECO_MENSAL: 34.90,
+  PRECO_ANUAL: 247.00,
+  HORAS_TESTE: 2,
   SUPORTE: "",
   NOVOS_POR_DIA_PADRAO: 20,
   INTERVALO_MAXIMO_DIAS: 365,
@@ -730,7 +768,13 @@ function criarApiSupabase(sb) {
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: url }); erro(error);
     },
     async definirSenha(senha) { const { error } = await sb.auth.updateUser({ password: senha }); erro(error); },
-    async assinatura() { return (await rpc("minha_assinatura"))?.[0] ?? null; },
+    async assinatura() { return (await rpc("minha_situacao"))?.[0] ?? null; },
+    async cadastrar(nome, email, senha) {
+      const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { nome }, emailRedirectTo: location.origin + location.pathname } });
+      if (error) throw new Error(/registered|already/i.test(error.message) ? "Já existe uma conta com este e-mail. Entre ou recupere a senha." : /password/i.test(error.message) ? "A senha precisa ter pelo menos 8 caracteres." : error.message);
+      if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) throw new Error("Já existe uma conta com este e-mail. Entre ou recupere a senha.");
+      return data.session;
+    },
     decks: () => rpc("painel_decks"),
     fila: (ids, novos) => rpc("fila_estudo", { p_decks: ids, p_novos_por_dia: novos }),
     filaFavoritos: () => rpc("fila_favoritos"),
@@ -831,7 +875,18 @@ function criarApiDemo() {
     async sair() { logado = null; guardar.apagar("mf_demo_sessao"); },
     async enviarRecuperacao() {},
     async definirSenha() {},
-    async assinatura() { return { status: "ativa", plano: "Assinatura mensal (demonstração)", expira_em: new Date(Date.now() + 23 * DIA).toISOString(), acesso: true }; },
+    async assinatura() {
+      // Demonstração: teste grátis em andamento (troque por guardar.gravar("pm_demo_plano","mensal") para simular assinante)
+      const plano = guardar.ler("pm_demo_plano", null);
+      if (plano) return { status: "ativa", plano, expira_em: new Date(Date.now() + 23 * DIA).toISOString(), assinante: true, em_teste: false, acesso: true };
+      const teste = new Date(guardar.ler("pm_demo_criado", Date.now()) + CONFIG.HORAS_TESTE * 3600000).toISOString();
+      return { status: null, plano: null, expira_em: null, assinante: false, em_teste: new Date(teste) > Date.now(), teste_ate: teste, acesso: new Date(teste) > Date.now() };
+    },
+    async cadastrar(nome, email, senha) {
+      if (!email || (senha || "").length < 8) throw new Error("Informe e-mail e uma senha com pelo menos 8 caracteres.");
+      guardar.gravar("pm_demo_criado", Date.now());
+      logado = { user: { email, user_metadata: { nome } } }; guardar.gravar("mf_demo_sessao", logado); return logado;
+    },
     async decks() {
       const agora = Date.now();
       return decks.filter((d) => d.publicado !== false).sort((a, b) => (b.dono ? 1 : 0) - (a.dono ? 1 : 0)).map((d) => {
@@ -991,17 +1046,19 @@ document.getElementById("ir-perfil").addEventListener("click", () => ir("perfil"
 function mostrarMoldura(sim) {
   document.getElementById("topo").hidden = !sim;
   document.getElementById("nav-baixo").hidden = !sim;
+  if (!sim) document.getElementById("faixa-teste").hidden = true;
 }
 let navegando = false;
 function ir(nome, ...args) {
   // Sem assinatura ativa, só o Perfil (para sair ou trocar de conta) fica disponível
-  if (!assinatura?.acesso && nome !== "perfil") return telaSemAcesso();
+  if (!assinatura?.acesso && nome !== "perfil" && nome !== "planos") return telaPlanos({ bloqueado: true });
   document.querySelectorAll(".folha-fundo").forEach((f) => f.remove());
   navegando = true;
   window.scrollTo(0, 0);
   telaAtual = nome;
-  const telas = { inicio: telaInicio, decks: telaDecks, deck: telaDeck, busca: telaBusca, stats: telaStats, perfil: telaPerfil, estudo: telaEstudo };
+  const telas = { inicio: telaInicio, decks: telaDecks, deck: telaDeck, busca: telaBusca, stats: telaStats, perfil: telaPerfil, estudo: telaEstudo, planos: telaPlanos };
   mostrarMoldura(nome !== "estudo");
+  document.getElementById("faixa-teste").hidden = nome === "estudo" || !assinatura?.em_teste;
   marcarNav({ deck: "decks" }[nome] ?? nome);
   telas[nome](...args);
 }
@@ -1115,6 +1172,7 @@ function telaEntrada(modo = "login", mensagem = "") {
   mostrarMoldura(false);
   const titulos = {
     login: ["Entrar", "Seus flashcards para a residência, com revisão espaçada."],
+    cadastro: ["Teste grátis por 2 horas", "Crie sua conta e use a plataforma completa. Sem cartão."],
     recuperar: ["Recuperar senha", "Enviaremos um link para você criar uma nova senha."],
     definir: ["Crie sua senha", "Defina a senha que você vai usar para entrar."],
   };
@@ -1126,30 +1184,36 @@ function telaEntrada(modo = "login", mensagem = "") {
       <div><h1>${t}</h1><p class="sub">${sub}</p></div>
       <form class="caixa" id="form-entrada" novalidate>
         ${mensagem}
+        ${modo === "cadastro" ? `
+        <div class="campo"><label for="nome">Seu nome</label>
+          <input id="nome" autocomplete="name" required maxlength="80"></div>` : ""}
         ${modo !== "definir" ? `
         <div class="campo"><label for="email">E-mail</label>
           <input id="email" type="email" autocomplete="email" required value="${MODO_DEMO ? "aluno@exemplo.com" : ""}"></div>` : ""}
         ${modo !== "recuperar" ? `
         <div class="campo"><label for="senha">${modo === "definir" ? "Nova senha" : "Senha"}</label>
-          <input id="senha" type="password" autocomplete="${modo === "definir" ? "new-password" : "current-password"}" minlength="8" required value="${MODO_DEMO ? "demonstracao" : ""}"></div>` : ""}
+          <input id="senha" type="password" autocomplete="${modo === "definir" || modo === "cadastro" ? "new-password" : "current-password"}" minlength="8" required value="${MODO_DEMO && modo === "login" ? "demonstracao" : ""}" ${modo === "cadastro" ? 'placeholder="Mínimo de 8 caracteres"' : ""}></div>` : ""}
         ${modo === "definir" ? `
         <div class="campo"><label for="senha2">Repita a senha</label>
           <input id="senha2" type="password" autocomplete="new-password" minlength="8" required></div>` : ""}
         <div id="erro-entrada"></div>
-        <button class="btn btn-primario" type="submit" id="btn-entrada">${modo === "login" ? "Entrar" : modo === "recuperar" ? "Enviar link" : "Salvar senha e entrar"}</button>
+        <button class="btn btn-primario" type="submit" id="btn-entrada">${{ login: "Entrar", recuperar: "Enviar link", definir: "Salvar senha e entrar", cadastro: "Criar conta e começar" }[modo]}</button>
         ${modo === "login" ? `<button type="button" class="btn-texto" id="ir-recuperar">Esqueci minha senha</button>` : ""}
-        ${modo === "recuperar" ? `<button type="button" class="btn-texto" id="ir-login">Voltar para o login</button>` : ""}
+        ${modo === "recuperar" || modo === "cadastro" ? `<button type="button" class="btn-texto" id="ir-login">${modo === "cadastro" ? "Já tenho conta: entrar" : "Voltar para o login"}</button>` : ""}
       </form>
       ${modo === "login" ? `
-      <div style="display:grid;gap:12px">
-        <div class="chips-estaticos">${AREAS.map((a) => `<span>${a}</span>`).join("")}</div>
-        <p class="texto-2">Ainda não é assinante? ${CONFIG.CHECKOUT_URL ? `<a href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assine aqui</a>. O acesso chega por e-mail logo após o pagamento.` : "O acesso chega por e-mail logo após a compra."}</p>
-      </div>` : ""}
+      <div class="caixa" style="padding:18px;display:grid;gap:10px">
+        <strong>Ainda não tem conta?</strong>
+        <p class="texto-2">Teste a plataforma completa por ${CONFIG.HORAS_TESTE} horas, sem cartão. Depois, planos a partir de ${dinheiro(CONFIG.PRECO_ANUAL / 12)} por mês.</p>
+        <button type="button" class="btn" id="ir-cadastro">Criar conta grátis</button>
+      </div>
+      <div class="chips-estaticos">${AREAS.filter((a) => a !== "Meus decks").map((a) => `<span>${a}</span>`).join("")}</div>` : ""}
     </div>
   </section>`;
 
   document.getElementById("ir-recuperar")?.addEventListener("click", () => telaEntrada("recuperar"));
   document.getElementById("ir-login")?.addEventListener("click", () => telaEntrada("login"));
+  document.getElementById("ir-cadastro")?.addEventListener("click", () => telaEntrada("cadastro"));
   document.getElementById("form-entrada").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const caixaErro = document.getElementById("erro-entrada");
@@ -1161,6 +1225,16 @@ function telaEntrada(modo = "login", mensagem = "") {
         const senha = document.getElementById("senha").value;
         if (!email || !senha) throw new Error("Informe e-mail e senha.");
         sessao = await api.entrar(email, senha);
+        await aposEntrar();
+      } else if (modo === "cadastro") {
+        const nome = document.getElementById("nome").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const senha = document.getElementById("senha").value;
+        if (!nome || !email) throw new Error("Informe seu nome e e-mail.");
+        if (senha.length < 8) throw new Error("A senha precisa ter pelo menos 8 caracteres.");
+        sessao = await api.cadastrar(nome, email, senha);
+        if (!sessao) return telaEntrada("login", `<div class="msg msg-ok">Conta criada. Enviamos um link de confirmação para ${esc(email)}: abra e depois entre aqui.</div>`);
+        toast(`Conta criada. Seu teste grátis de ${CONFIG.HORAS_TESTE} horas começou.`);
         await aposEntrar();
       } else if (modo === "recuperar") {
         const email = document.getElementById("email").value.trim();
@@ -1186,34 +1260,40 @@ function telaEntrada(modo = "login", mensagem = "") {
 async function aposEntrar() {
   try { await api.registrarDispositivo(); } catch { /* segue mesmo assim */ }
   assinatura = await api.assinatura().catch(() => null);
-  if (!assinatura?.acesso) return telaSemAcesso();
-  ir("inicio");
+  atualizarFaixa();
   vigiarDispositivo();
+  if (!assinatura?.acesso) return telaPlanos({ bloqueado: true });
+  ir("inicio");
 }
 
-function telaSemAcesso() {
-  mostrarMoldura(true); marcarNav("");
-  const st = assinatura?.status;
-  const motivo = !assinatura ? "Não encontramos uma assinatura para este e-mail."
-    : st === "reembolsada" ? "Sua compra foi reembolsada ou contestada, por isso o acesso foi encerrado."
-    : st === "atrasada" ? "O pagamento da sua assinatura está em atraso. Regularize na Kiwify para voltar a estudar."
-    : `Sua assinatura terminou em ${fmtData(assinatura.expira_em)}.`;
-  telaAtual = "sem-acesso";
-  tela.innerHTML = `
-  <section class="fim caixa">
-    <h2>Sua assinatura não está ativa</h2>
-    <p>${motivo} Você entrou como <strong>${esc(sessao?.user?.email ?? "")}</strong>. Assinou com outro e-mail? Saia e entre com ele.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
-      ${CONFIG.CHECKOUT_URL ? `<a class="btn btn-primario" href="${esc(CONFIG.CHECKOUT_URL)}" target="_blank" rel="noopener">Assinar agora</a>` : ""}
-      <button class="btn" id="recarregar">Já paguei, verificar de novo</button>
-      <button class="btn" id="sair">Sair</button>
-    </div>
-    ${CONFIG.SUPORTE ? `<p class="texto-2">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
-  </section>`;
-  document.getElementById("recarregar").onclick = aposEntrar;
-  document.getElementById("sair").onclick = sair;
+// ---------- faixa do teste grátis ----------
+const dinheiro = (v) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: Number.isInteger(Number(v)) ? 0 : 2 });
+const fmtVenc = (iso) => iso ? fmtData(new Date(new Date(iso).getTime() - 60000).toISOString()) : "—"; // acesso vai até 00:00 do dia seguinte
+function restanteTeste() {
+  const ms = new Date(assinatura?.teste_ate ?? 0).getTime() - Date.now();
+  if (ms <= 0) return "";
+  const total = Math.ceil(ms / 60000), h = Math.floor(total / 60), m = total % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}min` : `${m} min`;
 }
+let relogioTeste = null;
+function atualizarFaixa() {
+  const emTeste = !!assinatura?.em_teste;
+  document.querySelectorAll(".so-teste").forEach((b) => { b.hidden = !!assinatura?.assinante; });
+  const faixa = document.getElementById("faixa-teste");
+  faixa.hidden = !emTeste || telaAtual === "estudo";
+  if (emTeste) document.getElementById("faixa-texto").innerHTML = `Teste grátis: <strong>${restanteTeste() || "terminando"}</strong> restantes`;
+  clearInterval(relogioTeste);
+  if (emTeste) relogioTeste = setInterval(async () => {
+    if (restanteTeste()) { document.getElementById("faixa-texto").innerHTML = `Teste grátis: <strong>${restanteTeste()}</strong> restantes`; return; }
+    clearInterval(relogioTeste);
+    assinatura = await api.assinatura().catch(() => assinatura);
+    atualizarFaixa();
+    if (!assinatura?.acesso) telaPlanos({ bloqueado: true });
+  }, 30000);
+}
+document.getElementById("faixa-planos").addEventListener("click", () => ir("planos"));
 
+function telaSemAcesso() { return telaPlanos({ bloqueado: true }); }
 async function sair() { await api.sair(); sessao = null; cacheDecks = null; telaEntrada("login"); }
 
 let vigia = null;
@@ -1944,6 +2024,89 @@ async function telaStats() {
 }
 
 /* =====================================================================
+   PLANOS (teste grátis, assinatura e migração para o anual)
+   ===================================================================== */
+const nomePlano = (p) => ({ mensal: "Mensal", anual: "Anual", equipe: "Equipe", cortesia: "Cortesia", teste: "Teste" }[p] ?? p ?? "—");
+function linkCheckout(url) {
+  if (!url) return "";
+  const u = new URL(url);
+  const email = sessao?.user?.email, nome = sessao?.user?.user_metadata?.nome;
+  if (email) u.searchParams.set("email", email);
+  if (nome) u.searchParams.set("name", nome);
+  return u.toString();
+}
+let esperaPagamento = null;
+async function telaPlanos(opcoes = {}) {
+  const bloqueado = !!opcoes.bloqueado || !assinatura?.acesso;
+  mostrarMoldura(true); telaAtual = "planos"; marcarNav("planos");
+  document.getElementById("faixa-teste").hidden = !assinatura?.em_teste;
+  const cheio = CONFIG.PRECO_MENSAL * 12;
+  const economia = Math.round((1 - CONFIG.PRECO_ANUAL / cheio) * 100);
+  const porMes = CONFIG.PRECO_ANUAL / 12;
+  const ehMensal = assinatura?.assinante && assinatura.plano === "mensal";
+  const ehAssinante = !!assinatura?.assinante;
+  const st = assinatura?.status;
+
+  const titulo = ehMensal ? "Seu plano" : ehAssinante ? "Seu plano" : bloqueado
+    ? (st === "reembolsada" ? "Acesso encerrado" : st ? "Sua assinatura venceu" : "Seu teste grátis terminou")
+    : "Planos";
+  const sub = ehMensal ? `Você está no plano mensal. No anual, o mesmo ano sai por ${dinheiro(CONFIG.PRECO_ANUAL)} em vez de ${dinheiro(cheio)}.`
+    : ehAssinante ? `Você está no plano ${nomePlano(assinatura.plano).toLowerCase()}.`
+    : bloqueado ? (st === "reembolsada" ? "Sua compra foi reembolsada ou contestada. Para voltar a estudar, assine um plano."
+        : st ? `O acesso terminou em ${fmtVenc(assinatura.expira_em)}. Seu progresso continua salvo: assine para continuar de onde parou.`
+        : "Gostou? Assine para continuar estudando. Seu progresso e seus decks continuam salvos.")
+    : `Você está no teste grátis: ${restanteTeste() || "terminando"} restantes. Assine quando quiser, o progresso continua.`;
+
+  const cartaoAnual = `
+    <section class="caixa plano plano-destaque">
+      <span class="selo-economia">Economize ${economia}%</span>
+      <h2>Plano anual</h2>
+      <div class="preco"><s>${dinheiro(cheio)}</s><b>${dinheiro(CONFIG.PRECO_ANUAL)}</b><span>por ano</span></div>
+      <p class="equivale">Equivale a <strong>${dinheiro(porMes)} por mês</strong>. Você economiza ${dinheiro(cheio - CONFIG.PRECO_ANUAL)} no ano.</p>
+      ${CONFIG.CHECKOUT_ANUAL ? `<a class="btn btn-primario btn-largo" data-checkout href="${esc(linkCheckout(CONFIG.CHECKOUT_ANUAL))}" target="_blank" rel="noopener">${ehMensal ? "Migrar para o anual" : "Assinar o anual"}</a>` : `<button class="btn btn-largo" disabled>Pagamento em configuração</button>`}
+    </section>`;
+  const cartaoMensal = ehAssinante ? "" : `
+    <section class="caixa plano">
+      <h2>Plano mensal</h2>
+      <div class="preco"><b>${dinheiro(CONFIG.PRECO_MENSAL)}</b><span>por mês</span></div>
+      <p class="equivale">Cancele quando quiser.</p>
+      ${CONFIG.CHECKOUT_MENSAL ? `<a class="btn btn-largo" data-checkout href="${esc(linkCheckout(CONFIG.CHECKOUT_MENSAL))}" target="_blank" rel="noopener">Assinar o mensal</a>` : `<button class="btn btn-largo" disabled>Pagamento em configuração</button>`}
+    </section>`;
+  const inclui = ["Todos os decks da plataforma e as próximas atualizações", "Revisão espaçada no estilo Anki", "Seus próprios decks e cards", "Estatísticas, calendário e previsão de revisões", "Celular e computador"];
+
+  tela.innerHTML = `
+  <div class="titulo-pag"><div><h1>${titulo}</h1><p>${sub}</p></div></div>
+  ${ehAssinante ? `<section class="caixa plano-atual"><strong>Plano ${esc(nomePlano(assinatura.plano))}</strong>
+    <span class="texto-2">${assinatura.status === "ativa" ? `Próxima cobrança em ${fmtVenc(assinatura.expira_em)}` : `Acesso até ${fmtVenc(assinatura.expira_em)}`}</span></section>` : ""}
+  ${!ehAssinante || ehMensal ? `<div class="planos" ${ehMensal ? 'style="grid-template-columns:minmax(0,560px)"' : ""}>${cartaoAnual}${cartaoMensal}</div>` : ""}
+  ${ehMensal ? `<section class="caixa convite"><strong>Como migrar</strong>
+    <p>1. Assine o anual acima, com o mesmo e-mail (${esc(sessao?.user?.email ?? "")}).<br>2. Depois que o anual for aprovado, cancele a assinatura mensal na sua conta da Kiwify, para não ser cobrado de novo. O acesso segue pelo anual.</p></section>` : ""}
+  ${!ehAssinante ? `<section class="caixa convite"><strong>Os dois planos incluem</strong>
+    <ul class="inclui">${inclui.map((t) => `<li>${ico("check")}<span>${t}</span></li>`).join("")}</ul>
+    <p class="texto-2" style="margin-top:6px">Pague com o mesmo e-mail da sua conta (${esc(sessao?.user?.email ?? "")}). O acesso é liberado automaticamente assim que a Kiwify aprovar o pagamento.</p></section>` : ""}
+  <div id="espera"></div>
+  ${bloqueado ? `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="verificar">Já paguei, verificar</button><button class="btn" id="sair">Sair</button></div>` : ""}
+  ${CONFIG.SUPORTE ? `<p class="texto-2" style="margin-top:14px">Dúvidas? ${esc(CONFIG.SUPORTE)}</p>` : ""}`;
+
+  async function verificar(silencioso) {
+    const antes = !!assinatura?.assinante, planoAntes = assinatura?.plano;
+    assinatura = await api.assinatura().catch(() => assinatura);
+    atualizarFaixa();
+    const liberou = assinatura?.assinante && (!antes || assinatura.plano !== planoAntes);
+    if (liberou) { clearInterval(esperaPagamento); toast("Pagamento confirmado. Bom estudo!"); cacheDecks = null; return ir("inicio"); }
+    if (!silencioso) toast(assinatura?.acesso ? "Ainda não recebemos a confirmação. Pode levar alguns minutos." : "Pagamento ainda não confirmado. Pode levar alguns minutos.");
+  }
+  tela.querySelectorAll("[data-checkout]").forEach((a) => a.addEventListener("click", () => {
+    document.getElementById("espera").innerHTML = `<section class="caixa aguardando"><span class="pontinho"></span><span>Aguardando a confirmação do pagamento. Quando a Kiwify aprovar, o acesso é liberado aqui sozinho.</span></section>`;
+    clearInterval(esperaPagamento);
+    let vezes = 0;
+    esperaPagamento = setInterval(() => { if (++vezes > 90 || telaAtual !== "planos") return clearInterval(esperaPagamento); verificar(true); }, 10000);
+  }));
+  document.getElementById("verificar")?.addEventListener("click", () => verificar(false));
+  document.getElementById("sair")?.addEventListener("click", sair);
+}
+
+/* =====================================================================
    PERFIL E AJUSTES
    ===================================================================== */
 async function telaPerfil() {
@@ -1958,10 +2121,14 @@ async function telaPerfil() {
   <div class="perfil">
     <section class="caixa">
       <h2>Assinatura</h2>
+      ${assinatura?.assinante ? `
       <div class="linha-info"><span>Situação</span><strong>${st}</strong></div>
-      <div class="linha-info"><span>Plano</span><span>${esc(assinatura?.plano ?? "—")}</span></div>
-      <div class="linha-info"><span>${assinatura?.status === "ativa" ? "Próxima renovação" : "Acesso até"}</span><span>${fmtData(assinatura?.expira_em)}</span></div>
+      <div class="linha-info"><span>Plano</span><span>${esc(nomePlano(assinatura.plano))}</span></div>
+      <div class="linha-info"><span>${assinatura.status === "ativa" ? "Próxima cobrança" : "Acesso até"}</span><span>${fmtVenc(assinatura.expira_em)}</span></div>
       <p class="texto-2">Cobranças, troca de cartão e cancelamento ficam na sua conta da Kiwify.</p>
+      ${assinatura.plano === "mensal" ? `<div><button class="btn btn-primario" id="ver-planos">${ico("coroa", "ico-p")} Migrar para o anual e economizar</button></div>` : ""}` : `
+      <div class="linha-info"><span>Situação</span><strong>${assinatura?.em_teste ? `Teste grátis (${restanteTeste()} restantes)` : "Sem assinatura"}</strong></div>
+      <div><button class="btn btn-primario" id="ver-planos">${ico("coroa", "ico-p")} Ver planos</button></div>`}
     </section>
     <section class="caixa">
       <h2>Estudo</h2>
@@ -1990,6 +2157,7 @@ async function telaPerfil() {
       ${CONFIG.SUPORTE ? `<p class="texto-2">Suporte: <span style="user-select:all">${esc(CONFIG.SUPORTE)}</span></p>` : ""}
     </section>
   </div>`;
+  document.getElementById("ver-planos")?.addEventListener("click", () => ir("planos"));
   document.getElementById("novos").addEventListener("change", (e) => { guardar.gravar("mf_novos_dia", Number(e.target.value)); toast("Limite de cards novos atualizado."); });
   tela.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => {
     aplicarTema(b.dataset.tema);
