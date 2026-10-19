@@ -2084,7 +2084,7 @@ async function telaPlanos(opcoes = {}) {
       <p class="equivale">Cancele quando quiser.</p>
       ${CONFIG.CHECKOUT_MENSAL ? `<a class="btn btn-largo" data-checkout href="${esc(linkCheckout(CONFIG.CHECKOUT_MENSAL))}" target="_blank" rel="noopener">Assinar o mensal</a>` : `<button class="btn btn-largo" disabled>Pagamento em configuração</button>`}
     </section>`;
-  const inclui = ["Todos os decks da plataforma e as próximas atualizações", "Revisão espaçada no estilo Anki", "Seus próprios decks e cards", "Estatísticas, calendário e previsão de revisões", "Celular e computador"];
+  const inclui = ["Todos os decks da plataforma e as próximas atualizações", "Revisão espaçada: cada card volta no momento certo de revisar", "Seus próprios decks e cards", "Estatísticas, calendário e previsão de revisões", "Celular e computador"];
 
   tela.innerHTML = `
   <div class="titulo-pag"><div><h1>${titulo}</h1><p>${sub}</p></div></div>
@@ -2146,7 +2146,7 @@ async function telaPerfil() {
       <h2>Estudo</h2>
       <div class="campo"><label for="novos">Cards novos por dia</label>
         <select id="novos">${[5, 10, 15, 20, 30, 40, 50, 75, 100].map((n) => `<option ${n === novosPorDia() ? "selected" : ""}>${n}</option>`).join("")}</select></div>
-      <p class="texto-2">Como no Anki: cada card novo gera revisões nos dias seguintes. Comece com 20 e aumente se as revisões estiverem tranquilas.</p>
+      <p class="texto-2">Cada card novo gera revisões nos dias seguintes. Comece com 20 e aumente se as revisões estiverem tranquilas.</p>
     </section>
     <section class="caixa">
       <h2>Aparência</h2>
