@@ -499,6 +499,12 @@ table.tab .dir { text-align: right; }
   #tela.entrando .tracado path.anima { animation-delay: .25s; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.bloqueio { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: var(--fundo); }
+.bloqueio[hidden] { display: none; }
+.bloqueio .caixa { max-width: 380px; text-align: center; display: grid; gap: 12px; justify-items: center; padding: 28px 22px; }
+.bloqueio h2 { margin: 0; font-size: 1.25rem; }
+.bloqueio p { margin: 0; color: var(--tinta-2); line-height: 1.5; }
+.bloqueio .marcador-tela { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--pulso-suave); color: var(--pulso); }
 </style>
 </head>
 <body>
@@ -544,6 +550,14 @@ table.tab .dir { text-align: right; }
   </defs>
 </svg>
 
+<div id="bloqueio-tela" class="bloqueio" hidden role="dialog" aria-modal="true" aria-labelledby="bloqueio-titulo">
+  <div class="caixa">
+    <span class="marcador-tela"><svg class="ico" aria-hidden="true"><use href="#i-pulso"/></svg></span>
+    <h2 id="bloqueio-titulo">Aberto em outra aba</h2>
+    <p>Sua conta fica aberta em uma tela por vez. Continue na outra aba ou use esta aqui (a outra será pausada).</p>
+    <button class="btn btn-primario" id="usar-aqui" type="button">Usar nesta aba</button>
+  </div>
+</div>
 <div id="aviso-demo" class="aviso-demo" hidden>Modo demonstração: os dados são de exemplo e ficam só neste navegador.</div>
 
 <header class="topo" id="topo" hidden>
@@ -742,11 +756,8 @@ const guardar = {
   gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* armazenamento indisponível */ } },
   apagar(k) { try { localStorage.removeItem(k); } catch { /* idem */ } },
 };
-function idDispositivo() {
-  let id = guardar.ler("mf_dispositivo", null);
-  if (!id) { id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); guardar.gravar("mf_dispositivo", id); }
-  return id;
-}
+// Código desta tela (aba). Muda a cada carregamento; vai em todo pedido ao servidor (cabeçalho x-tela)
+const TELA = "tela-" + (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now());
 function descreverAparelho() {
   const ua = navigator.userAgent;
   const so = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iPhone/iPad" : /Windows/i.test(ua) ? "Windows" : /Mac/i.test(ua) ? "Mac" : /Linux/i.test(ua) ? "Linux" : "Aparelho";
@@ -757,7 +768,11 @@ function descreverAparelho() {
 // ---------- Supabase ----------
 function criarApiSupabase(sb) {
   const erro = (e) => { if (e) throw new Error(e.message || String(e)); };
-  const rpc = async (nome, args) => { const { data, error } = await sb.rpc(nome, args); erro(error); return data; };
+  const rpc = async (nome, args) => {
+    const { data, error } = await sb.rpc(nome, args);
+    if (error && /Sem acesso/.test(error.message || "") && nome !== "estado_tela") setTimeout(checarTela, 0); // pode ser outra tela
+    erro(error); return data;
+  };
   return {
     async sessao() { const { data } = await sb.auth.getSession(); return data.session; },
     async entrar(email, senha) {
@@ -795,10 +810,15 @@ function criarApiSupabase(sb) {
     porDia: (dias = 30) => rpc("revisoes_por_dia", { p_dias: dias }),
     previsao: () => rpc("previsao_revisoes", { p_dias: 30 }),
     async estados() { return (await rpc("contagem_estados"))?.[0] ?? { novos: 0, aprendendo: 0, jovens: 0, maduros: 0 }; },
-    async registrarDispositivo() { await rpc("registrar_dispositivo", { p_dispositivo: idDispositivo(), p_descricao: descreverAparelho() }); },
-    async dispositivoValido() { const { data, error } = await sb.rpc("dispositivo_valido", { p_dispositivo: idDispositivo() }); if (error) return true; return data; },
-    async dispositivos() { const { data, error } = await sb.from("dispositivos").select("*").order("ultimo_acesso", { ascending: false }); erro(error); return data; },
-    async removerDispositivo(id) { const { error } = await sb.from("dispositivos").delete().eq("dispositivo", id); erro(error); },
+    async assumirTela() { await rpc("assumir_tela", { p_aparelho: descreverAparelho() }); },
+    async estadoTela() { return (await rpc("estado_tela"))?.[0] ?? { estado: "livre" }; },
+    ouvirTela(uid, aoMudar) {
+      const canal = sb.channel("tela-" + uid)
+        .on("postgres_changes", { event: "*", schema: "public", table: "sessao_ativa", filter: `user_id=eq.${uid}` }, (p) => aoMudar(p.new))
+        .subscribe();
+      return () => { sb.removeChannel(canal); };
+    },
+    async sairLocal() { await sb.auth.signOut({ scope: "local" }).catch(() => {}); },
     criarDeck: (titulo) => rpc("criar_deck", { p_titulo: titulo }),
     renomearDeck: (id, titulo) => rpc("renomear_deck", { p_deck: id, p_titulo: titulo }),
     arquivarDeck: (id) => rpc("arquivar_deck", { p_deck: id }),
@@ -866,7 +886,6 @@ function criarApiDemo() {
   const hoje0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
   const chaveDia = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   let logado = guardar.ler("mf_demo_sessao", null);
-  const dispositivos = [{ dispositivo: idDispositivo(), descricao: descreverAparelho(), ultimo_acesso: new Date().toISOString() }];
   const deckNome = (id) => { const d = decks.find((x) => x.id === id); return d ? nomeDe(d) : ""; };
   const comoFila = (c, novo) => ({ ...c, novo, ...(novo ? { ease: 2.5, intervalo: 0, repeticoes: 0, lapsos: 0, estado: "aprendendo" } : prog[c.card_id]) });
 
@@ -960,10 +979,10 @@ function criarApiDemo() {
       return { novos: cards.length - p.length, aprendendo: p.filter((x) => x.estado === "aprendendo").length,
         jovens: p.filter((x) => x.estado === "revisao" && x.intervalo < 21).length, maduros: p.filter((x) => x.estado === "revisao" && x.intervalo >= 21).length };
     },
-    async registrarDispositivo() {},
-    async dispositivoValido() { return true; },
-    async dispositivos() { return dispositivos; },
-    async removerDispositivo() {},
+    async assumirTela() {},
+    async estadoTela() { return { estado: "ok" }; },
+    ouvirTela() { return () => {}; },
+    async sairLocal() { logado = null; guardar.apagar("mf_demo_sessao"); },
     async criarDeck(titulo) {
       if (!String(titulo || "").trim()) throw new Error("Dê um nome ao deck.");
       const id = "meu-" + Date.now(); decks.push({ id, nome: "pessoal:" + id, titulo: String(titulo).trim().slice(0, 80), dono: true, publicado: true });
@@ -1290,10 +1309,11 @@ function telaEntrada(modo = "login", mensagem = "") {
 }
 
 async function aposEntrar() {
-  try { await api.registrarDispositivo(); } catch { /* segue mesmo assim */ }
+  try { await api.assumirTela(); }
+  catch (e) { if (/SESSAO_ENCERRADA/.test(e.message)) return expulsar(); /* falha de rede: o vigia tenta de novo */ }
   assinatura = await api.assinatura().catch(() => null);
   atualizarFaixa();
-  vigiarDispositivo();
+  vigiarTela();
   if (!assinatura?.acesso) return telaPlanos({ bloqueado: true });
   ir("inicio");
 }
@@ -1326,6 +1346,8 @@ function atualizarFaixa() {
 document.getElementById("faixa-planos").addEventListener("click", () => ir("planos"));
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState !== "visible" || !sessao || !api) return;
+  await checarTela();
+  if (!sessao || !document.getElementById("bloqueio-tela").hidden) return;
   const antes = JSON.stringify([assinatura?.assinante, assinatura?.plano, assinatura?.acesso]);
   assinatura = await api.assinatura().catch(() => assinatura);
   atualizarFaixa();
@@ -1335,19 +1357,47 @@ document.addEventListener("visibilitychange", async () => {
 });
 
 function telaSemAcesso() { return telaPlanos({ bloqueado: true }); }
-async function sair() { await api.sair(); sessao = null; cacheDecks = null; telaEntrada("login"); }
+async function sair() { pararVigia(); const s = sessao; sessao = null; cacheDecks = null; await api.sair().catch(() => {}); if (s) telaEntrada("login"); }
 
-let vigia = null;
-function vigiarDispositivo() {
-  clearInterval(vigia);
-  vigia = setInterval(async () => {
-    const ok = await api.dispositivoValido().catch(() => true);
-    if (!ok) {
-      clearInterval(vigia);
-      await api.sair();
-      telaEntrada("login", `<div class="msg msg-erro">Sua conta foi aberta em outro aparelho e esta sessão foi encerrada. Cada assinatura pode ficar conectada em poucos aparelhos ao mesmo tempo.</div>`);
-    }
-  }, 120000);
+// ---------- uma tela por vez ----------
+let vigia = null, pararOuvir = null, canalAbas = null;
+function pararVigia() { clearInterval(vigia); vigia = null; pararOuvir?.(); pararOuvir = null; }
+function vigiarTela() {
+  pararVigia();
+  if (MODO_DEMO) return;
+  vigia = setInterval(checarTela, 30000);
+  const uid = sessao?.user?.id;
+  if (uid) pararOuvir = api.ouvirTela(uid, (novo) => { if (novo?.tela && novo.tela !== TELA) checarTela(); });
+  try { // outra aba deste navegador: aviso instantâneo
+    canalAbas ??= new BroadcastChannel("pulse-medcards-tela");
+    canalAbas.onmessage = (e) => { if (sessao && e.data?.tela && e.data.tela !== TELA) bloquearAba(); };
+    canalAbas.postMessage({ tela: TELA });
+  } catch { /* navegador sem BroadcastChannel: o servidor avisa */ }
+}
+let checando = false;
+async function checarTela() {
+  if (!sessao || MODO_DEMO || checando || !document.getElementById("bloqueio-tela").hidden) return;
+  checando = true;
+  try {
+    const s = await api.estadoTela();
+    if (s.estado === "outra_aba") bloquearAba();
+    else if (s.estado === "outro_aparelho") expulsar(s.aparelho);
+    else if (s.estado === "livre") await api.assumirTela().catch((e) => { if (/SESSAO_ENCERRADA/.test(e.message)) expulsar(); });
+  } catch { /* sem conexão: tenta na próxima */ } finally { checando = false; }
+}
+function bloquearAba() {
+  pararVigia();
+  tela.inert = true;
+  document.getElementById("bloqueio-tela").hidden = false;
+  document.getElementById("usar-aqui").focus();
+}
+document.getElementById("usar-aqui").addEventListener("click", () => location.reload());
+async function expulsar(aparelho) {
+  pararVigia();
+  sessao = null; cacheDecks = null; assinatura = null;
+  await api.sairLocal();
+  atualizarFaixa();
+  telaEntrada("login", `<div class="msg msg-erro">Sua conta foi aberta em outro aparelho${aparelho ? ` (${esc(aparelho)})` : ""} e esta tela foi desconectada. Cada conta fica aberta em uma tela por vez.</div>`);
 }
 
 /* =====================================================================
@@ -2157,9 +2207,7 @@ async function telaPlanos(opcoes = {}) {
 async function telaPerfil() {
   carregando();
   assinatura = await api.assinatura().catch(() => assinatura);
-  const disps = await api.dispositivos().catch(() => []);
   const st = { ativa: "Ativa", cancelada: "Cancelada (acesso até o fim do período pago)", atrasada: "Pagamento em atraso", reembolsada: "Encerrada" }[assinatura?.status] ?? "—";
-  const meu = idDispositivo();
   const temaSalvo = guardar.ler("pm_tema", "auto");
   tela.innerHTML = `
   <div class="titulo-pag"><div><h1>Perfil</h1><p>${esc(sessao?.user?.email ?? "")}</p></div></div>
@@ -2188,10 +2236,9 @@ async function telaPerfil() {
       </div>
     </section>
     <section class="caixa">
-      <h2>Aparelhos conectados</h2>
-      <p class="texto-2">Sua conta é pessoal. Ao entrar em um aparelho novo além do limite, o mais antigo é desconectado.</p>
-      ${disps.map((d) => `<div class="disp"><div><strong>${esc(d.descricao ?? "Aparelho")}</strong>${d.dispositivo === meu ? ` <span class="selo selo-bom">Este aparelho</span>` : ""}<br><small class="texto-2">Último acesso ${new Date(d.ultimo_acesso).toLocaleString("pt-BR")}</small></div>
-        ${d.dispositivo !== meu ? `<button class="btn" data-remover="${esc(d.dispositivo)}">Desconectar</button>` : ""}</div>`).join("") || `<p>Nenhum aparelho registrado.</p>`}
+      <h2>Tela conectada</h2>
+      <p class="texto-2">Sua conta é pessoal e fica aberta em uma tela por vez. Ao entrar em outro aparelho ou abrir outra aba, esta tela é desconectada.</p>
+      <div class="disp"><div><strong>${esc(descreverAparelho())}</strong> <span class="selo selo-bom">Esta tela</span></div></div>
     </section>
     <section class="caixa">
       <h2>Senha e acesso</h2>
@@ -2210,10 +2257,6 @@ async function telaPerfil() {
   }));
   document.getElementById("sair").onclick = sair;
   document.getElementById("trocar-senha").onclick = () => telaEntrada("definir");
-  tela.querySelectorAll("[data-remover]").forEach((b) => b.addEventListener("click", async () => {
-    try { await api.removerDispositivo(b.dataset.remover); toast("Aparelho desconectado."); } catch { toast("Não foi possível desconectar."); }
-    telaPerfil();
-  }));
 }
 
 /* =====================================================================
@@ -2243,9 +2286,13 @@ async function iniciar() {
     }
     const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
       auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+      global: { headers: { "x-tela": TELA } },
     });
     api = criarApiSupabase(sb);
-    sb.auth.onAuthStateChange((evento) => { if (evento === "PASSWORD_RECOVERY") telaEntrada("definir"); });
+    sb.auth.onAuthStateChange((evento) => {
+      if (evento === "PASSWORD_RECOVERY") telaEntrada("definir");
+      if (evento === "SIGNED_OUT" && sessao) setTimeout(() => sessao && expulsar(), 0); // login encerrado no servidor
+    });
   }
 
   if (erroLink) {

@@ -12,6 +12,7 @@ Revisão de 19/10/2026. O que está em vigor e o que ainda depende de configura�
 - **Importação**: só aceita o token OIDC do workflow `importar-decks.yml` na branch `main` deste repositório; só aceita imagens/áudio comuns até 15 MB.
 - **Storage `midia`**: só tipos de imagem/áudio, até 15 MB (sem HTML/SVG).
 - **Extensão `http`**: inacessível para usuários.
+- **Uma tela por vez**: cada aba envia um código de tela (`x-tela`); a última a abrir assume a conta (`assumir_tela`). Outra aba do mesmo navegador é pausada; outro aparelho tem o login encerrado no servidor e precisa entrar de novo. Conteúdo e progresso exigem a tela ativa (`tem_acesso` → `tela_ok`).
 - Nenhuma chave secreta no site nem no GitHub (o build recusa a service_role).
 
 ## Pendências manuais (painéis)
