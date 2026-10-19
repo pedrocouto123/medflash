@@ -1,0 +1,97 @@
+/* Páginas legais do Pulse Medcards: leitura confortável, mesmo visual do app */
+:root {
+  --fundo: #FBF8F9; --superficie: #FFFFFF; --superficie-2: #F6F1F3;
+  --tinta: #241C26; --tinta-2: #5E5361; --tinta-3: #8C8190; --linha: #ECE2E6;
+  --pulso: #C2255C; --pulso-suave: #FCEBF1;
+  --f: "Onest", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fundo: #141016; --superficie: #1D1820; --superficie-2: #251F29;
+    --tinta: #F3EEF4; --tinta-2: #ABA0AF; --tinta-3: #7D7281; --linha: #352D39;
+    --pulso: #F0628F; --pulso-suave: #2C1822; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --fundo: #141016; --superficie: #1D1820; --superficie-2: #251F29;
+  --tinta: #F3EEF4; --tinta-2: #ABA0AF; --tinta-3: #7D7281; --linha: #352D39;
+  --pulso: #F0628F; --pulso-suave: #2C1822; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body { margin: 0; background: var(--fundo); color: var(--tinta); font: 16px/1.65 var(--f); -webkit-font-smoothing: antialiased; }
+a { color: var(--pulso); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--pulso); outline-offset: 2px; border-radius: 6px; }
+
+.barra { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--fundo) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--linha); }
+.barra-in { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+.marca { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.03em; color: var(--tinta); text-decoration: none; }
+.selo { width: 32px; height: 32px; border-radius: 10px; background: var(--pulso); color: #fff; display: grid; place-items: center; }
+.selo svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.voltar { margin-left: auto; font-weight: 600; font-size: 14px; text-decoration: none; padding: 9px 14px; border-radius: 12px; border: 1px solid var(--linha); background: var(--superficie); color: var(--tinta); }
+.voltar:hover { border-color: var(--tinta-3); }
+
+.pagina { max-width: 1040px; margin: 0 auto; padding: 32px 16px 80px; display: grid; gap: 24px; }
+@media (min-width: 900px) { .pagina { grid-template-columns: 240px minmax(0, 1fr); gap: 56px; padding-top: 56px; } }
+
+.cabecalho { grid-column: 1 / -1; display: grid; gap: 12px; max-width: 720px; }
+.rotulo { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pulso); }
+h1 { margin: 0; font-size: clamp(32px, 6vw, 46px); line-height: 1.08; letter-spacing: -0.035em; text-wrap: balance; }
+.meta { color: var(--tinta-2); font-size: 15px; }
+
+.indice { position: relative; }
+.indice nav { position: sticky; top: 92px; display: grid; gap: 2px; font-size: 14px; }
+.indice strong { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); margin-bottom: 8px; }
+.indice a { color: var(--tinta-2); text-decoration: none; padding: 5px 10px; border-left: 2px solid var(--linha); }
+.indice a { display: flex; gap: 8px; }
+.indice .n-ind { color: var(--tinta-3); font-variant-numeric: tabular-nums; min-width: 18px; }
+.indice a:hover { color: var(--tinta); border-color: var(--pulso); }
+@media (max-width: 899px) {
+  .indice nav { position: static; background: var(--superficie); border: 1px solid var(--linha); border-radius: 16px; padding: 16px; }
+  .indice details summary { cursor: pointer; font-weight: 700; list-style: none; background: var(--superficie); border: 1px solid var(--linha); border-radius: 14px; padding: 12px 16px; }
+  .indice details[open] summary { margin-bottom: 8px; }
+  .indice details summary::after { content: " ▾"; color: var(--tinta-3); }
+}
+@media (min-width: 900px) { .indice details > summary { display: none; } }
+
+.texto { max-width: 720px; min-width: 0; }
+.resumo { background: var(--superficie); border: 1px solid var(--linha); border-radius: 20px; padding: 22px 22px 20px; margin-bottom: 40px; }
+.resumo h2 { margin: 0 0 12px; font-size: 17px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.resumo h2::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--pulso); }
+.resumo ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--tinta-2); }
+.resumo li::marker { color: var(--pulso); }
+
+section { padding-top: 8px; margin-bottom: 36px; }
+h2 { font-size: 22px; letter-spacing: -0.02em; line-height: 1.25; margin: 0 0 12px; display: flex; gap: 12px; align-items: baseline; }
+h2 .n { color: var(--pulso); font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 700; min-width: 24px; }
+h3 { font-size: 16px; margin: 20px 0 6px; }
+p, li { color: var(--tinta-2); }
+p { margin: 0 0 12px; }
+strong { color: var(--tinta); }
+ul, ol { padding-left: 22px; margin: 0 0 12px; }
+li { margin-bottom: 6px; }
+
+.tabela { overflow-x: auto; margin: 4px 0 16px; border: 1px solid var(--linha); border-radius: 16px; background: var(--superficie); }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 520px; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--linha); }
+th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-3); background: var(--superficie-2); }
+tr:last-child td { border-bottom: 0; }
+td { color: var(--tinta-2); }
+td:first-child { color: var(--tinta); font-weight: 600; }
+
+.destaque { border-left: 3px solid var(--pulso); background: var(--pulso-suave); padding: 14px 16px; border-radius: 0 12px 12px 0; margin: 4px 0 16px; }
+.destaque p:last-child { margin: 0; }
+.destaque p { color: var(--tinta); }
+
+.rodape { grid-column: 1 / -1; border-top: 1px solid var(--linha); padding-top: 24px; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--tinta-3); }
+.rodape a { color: var(--tinta-2); }
+
+@media print {
+  .barra, .indice, .voltar { display: none !important; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .pagina { display: block; padding: 0; }
+  p, li, td { color: #222; }
+  .resumo, .tabela { border-color: #ccc; }
+  a { color: #000; }
+}

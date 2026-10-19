@@ -23,4 +23,4 @@ Revisão de 19/10/2026. O que está em vigor e o que ainda depende de configura�
 5. **Trocar os tokens dos webhooks da Kiwify** (foram compartilhados em chat) e atualizar `config.kiwify_tokens`.
 6. **2FA** em GitHub, Vercel, Supabase, Kiwify, Google e Registro.br, para todos os sócios.
 7. **Backups**: o plano gratuito do Supabase não tem backup diário confiável — considerar o Pro antes de ter muitos assinantes.
-8. **LGPD**: publicar Política de Privacidade e Termos; definir retenção do `webhook_log` (ex.: 12 meses).
+8. **LGPD**: Termos de Uso e Política de Privacidade publicados (`termos.html`, `privacidade.html`), com aceite registrado no cadastro e exportação/exclusão de conta no Perfil. Falta: preencher `app/empresa.js` (razão social, CNPJ, e-mail) e rodar `supabase/sql-manual/retencao-lgpd.sql` no SQL Editor para ativar a limpeza automática.

@@ -499,6 +499,16 @@ table.tab .dir { text-align: right; }
   #tela.entrando .tracado path.anima { animation-delay: .25s; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.aceite { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: 14px; color: var(--tinta-2); line-height: 1.45; cursor: pointer; }
+.aceite input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--pulso); cursor: pointer; }
+.links-legais { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; font-size: 13px; color: var(--tinta-3); padding: 4px 0 8px; }
+.links-legais a { color: var(--tinta-2); text-decoration: none; }
+.links-legais a:hover { color: var(--pulso); text-decoration: underline; }
+.nota-legal { font-size: 13px; color: var(--tinta-3); text-align: center; margin-top: 14px; line-height: 1.5; }
+.nota-legal a { color: var(--tinta-2); }
+.acoes-dados { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-perigo { color: var(--novamente); border-color: color-mix(in srgb, var(--novamente) 35%, var(--linha)); }
+.btn-perigo:hover { border-color: var(--novamente); }
 .bloqueio { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: var(--fundo); }
 .bloqueio[hidden] { display: none; }
 .bloqueio .caixa { max-width: 380px; text-align: center; display: grid; gap: 12px; justify-items: center; padding: 28px 22px; }
@@ -523,6 +533,7 @@ table.tab .dir { text-align: right; }
     <symbol id="i-embaralhar" viewBox="0 0 24 24"><path d="M3 7h2.5c5 0 7 10 12 10H21M3 17h2.5c1.9 0 3.3-1.4 4.5-3.2M14 10.2C15.2 8.4 16.6 7 18.5 7H21M18 4l3 3-3 3M18 14l3 3-3 3"/></symbol>
     <symbol id="i-seta" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
     <symbol id="i-voltar" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-baixar" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></symbol>
     <symbol id="i-fechar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
     <symbol id="i-esteto" viewBox="0 0 24 24"><path d="M5 3.5V9a5 5 0 0 0 10 0V3.5"/><path d="M10 14v1.5a4.5 4.5 0 0 0 9 0V13"/><circle cx="19" cy="11" r="2"/></symbol>
     <symbol id="i-bisturi" viewBox="0 0 24 24"><path d="m3.5 20.5 7.5-7.5"/><path d="M11 13 20 4c.9 3.3-1.2 7.6-5.7 10.3Z"/></symbol>
@@ -756,6 +767,8 @@ const guardar = {
   gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* armazenamento indisponível */ } },
   apagar(k) { try { localStorage.removeItem(k); } catch { /* idem */ } },
 };
+// Versão dos Termos de Uso e da Política de Privacidade aceita no cadastro
+const VERSAO_TERMOS = "1.0 (2026-10-19)";
 // Código desta tela (aba). Muda a cada carregamento; vai em todo pedido ao servidor (cabeçalho x-tela)
 const TELA = "tela-" + (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now());
 function descreverAparelho() {
@@ -788,7 +801,7 @@ function criarApiSupabase(sb) {
     async definirSenha(senha) { const { error } = await sb.auth.updateUser({ password: senha }); erro(error); },
     async assinatura() { return (await rpc("minha_situacao"))?.[0] ?? null; },
     async cadastrar(nome, email, senha) {
-      const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { nome }, emailRedirectTo: location.origin + location.pathname } });
+      const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { nome, aceite_termos: { versao: VERSAO_TERMOS, em: new Date().toISOString() } }, emailRedirectTo: location.origin + location.pathname } });
       if (error) throw new Error(/registered|already/i.test(error.message) ? "Já existe uma conta com este e-mail. Entre ou recupere a senha." : /password/i.test(error.message) ? "A senha precisa ter pelo menos 8 caracteres." : error.message);
       if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) throw new Error("Já existe uma conta com este e-mail. Entre ou recupere a senha.");
       return data.session;
@@ -819,6 +832,12 @@ function criarApiSupabase(sb) {
       return () => { sb.removeChannel(canal); };
     },
     async sairLocal() { await sb.auth.signOut({ scope: "local" }).catch(() => {}); },
+    meusDados: () => rpc("meus_dados"),
+    async excluirConta(confirmacao) {
+      const { error } = await sb.functions.invoke("excluir-conta", { body: { confirmacao } });
+      if (error) { let msg = error.message; try { msg = (await error.context.json()).erro || msg; } catch { /* sem corpo */ } throw new Error(msg); }
+      await sb.auth.signOut({ scope: "local" }).catch(() => {});
+    },
     criarDeck: (titulo) => rpc("criar_deck", { p_titulo: titulo }),
     renomearDeck: (id, titulo) => rpc("renomear_deck", { p_deck: id, p_titulo: titulo }),
     arquivarDeck: (id) => rpc("arquivar_deck", { p_deck: id }),
@@ -983,6 +1002,11 @@ function criarApiDemo() {
     async estadoTela() { return { estado: "ok" }; },
     ouvirTela() { return () => {}; },
     async sairLocal() { logado = null; guardar.apagar("mf_demo_sessao"); },
+    async meusDados() { return { gerado_em: new Date().toISOString(), modo: "demonstração", conta: logado?.user ?? null, progresso: prog, revisoes: hist, favoritos: [...favs] }; },
+    async excluirConta(confirmacao) {
+      if (String(confirmacao).trim().toUpperCase() !== "EXCLUIR") throw new Error("Digite EXCLUIR para confirmar.");
+      Object.keys(localStorage).filter((k) => /^(mf_|pm_demo)/.test(k)).forEach((k) => guardar.apagar(k)); logado = null;
+    },
     async criarDeck(titulo) {
       if (!String(titulo || "").trim()) throw new Error("Dê um nome ao deck.");
       const id = "meu-" + Date.now(); decks.push({ id, nome: "pessoal:" + id, titulo: String(titulo).trim().slice(0, 80), dono: true, publicado: true });
@@ -1247,6 +1271,9 @@ function telaEntrada(modo = "login", mensagem = "") {
         ${modo === "definir" ? `
         <div class="campo"><label for="senha2">Repita a senha</label>
           <input id="senha2" type="password" autocomplete="new-password" minlength="8" required></div>` : ""}
+        ${modo === "cadastro" ? `
+        <label class="aceite"><input type="checkbox" id="aceite" required>
+          <span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>` : ""}
         <div id="erro-entrada"></div>
         <button class="btn btn-primario" type="submit" id="btn-entrada">${{ login: "Entrar", recuperar: "Enviar link", definir: "Salvar senha e entrar", cadastro: "Criar conta e começar" }[modo]}</button>
         ${modo === "login" ? `<button type="button" class="btn-texto" id="ir-recuperar">Esqueci minha senha</button>` : ""}
@@ -1259,6 +1286,7 @@ function telaEntrada(modo = "login", mensagem = "") {
         <button type="button" class="btn" id="ir-cadastro">Criar conta grátis</button>
       </div>
       <div class="chips-estaticos">${AREAS.filter((a) => a !== "Meus decks").map((a) => `<span>${a}</span>`).join("")}</div>` : ""}
+      <nav class="links-legais" aria-label="Documentos legais"><a href="termos.html">Termos de Uso</a><a href="privacidade.html">Política de Privacidade</a></nav>
     </div>
   </section>`;
 
@@ -1283,6 +1311,7 @@ function telaEntrada(modo = "login", mensagem = "") {
         const senha = document.getElementById("senha").value;
         if (!nome || !email) throw new Error("Informe seu nome e e-mail.");
         if (senha.length < 8) throw new Error("A senha precisa ter pelo menos 8 caracteres.");
+        if (!document.getElementById("aceite").checked) throw new Error("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
         sessao = await api.cadastrar(nome, email, senha);
         if (!sessao) return telaEntrada("login", `<div class="msg msg-ok">Conta criada. Enviamos um link de confirmação para ${esc(email)}: abra e depois entre aqui.</div>`);
         toast(`Conta criada. Seu teste grátis de ${CONFIG.HORAS_TESTE} horas começou.`);
@@ -2181,7 +2210,8 @@ async function telaPlanos(opcoes = {}) {
     <p class="texto-2" style="margin-top:6px">Pague com o mesmo e-mail da sua conta (${esc(sessao?.user?.email ?? "")}). O acesso é liberado automaticamente assim que a Kiwify aprovar o pagamento.</p></section>` : ""}
   <div id="espera"></div>
   ${bloqueado ? `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="verificar">Já paguei, verificar</button><button class="btn" id="sair">Sair</button></div>` : ""}
-  ${CONFIG.SUPORTE ? `<p class="texto-2" style="margin-top:14px">Dúvidas? ${esc(CONFIG.SUPORTE)}</p>` : ""}`;
+  ${CONFIG.SUPORTE ? `<p class="texto-2" style="margin-top:14px">Dúvidas? ${esc(CONFIG.SUPORTE)}</p>` : ""}
+  <p class="nota-legal">Pagamento processado pela Kiwify. Renovação automática, cancele quando quiser.<br>Garantia de 7 dias: desistiu, recebe 100% de volta. Ao assinar, você concorda com os <a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a>.</p>`;
 
   async function verificar(silencioso) {
     const antes = !!assinatura?.assinante, planoAntes = assinatura?.plano;
@@ -2241,6 +2271,15 @@ async function telaPerfil() {
       <div class="disp"><div><strong>${esc(descreverAparelho())}</strong> <span class="selo selo-bom">Esta tela</span></div></div>
     </section>
     <section class="caixa">
+      <h2>Privacidade e dados</h2>
+      <p class="texto-2">Seus dados são tratados conforme a LGPD. Você pode baixar uma cópia de tudo o que guardamos sobre você ou excluir sua conta de forma definitiva.</p>
+      <div class="acoes-dados">
+        <button class="btn" id="baixar-dados">${ico("baixar", "ico-p")} Baixar meus dados</button>
+        <button class="btn btn-perigo" id="excluir-conta">Excluir minha conta</button>
+      </div>
+      <p class="texto-2"><a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a> · <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a></p>
+    </section>
+    <section class="caixa">
       <h2>Senha e acesso</h2>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn" id="trocar-senha">Trocar senha</button>
@@ -2257,6 +2296,51 @@ async function telaPerfil() {
   }));
   document.getElementById("sair").onclick = sair;
   document.getElementById("trocar-senha").onclick = () => telaEntrada("definir");
+  document.getElementById("baixar-dados").onclick = baixarMeusDados;
+  document.getElementById("excluir-conta").onclick = excluirMinhaConta;
+}
+
+// ---------- LGPD: portabilidade e exclusão ----------
+async function baixarMeusDados(ev) {
+  const btn = ev?.currentTarget; if (btn) btn.disabled = true;
+  try {
+    const dados = await api.meusDados();
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `pulse-medcards-meus-dados-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast("Arquivo com seus dados baixado.");
+  } catch (e) { toast("Não foi possível gerar o arquivo: " + e.message); }
+  finally { if (btn) btn.disabled = false; }
+}
+function excluirMinhaConta() {
+  const pago = assinatura?.assinante && assinatura.status === "ativa" && ["mensal", "anual"].includes(assinatura.plano);
+  const f = abrirFolha(`${topoFolha("Excluir minha conta")}
+    <p>Isto apaga <strong>de forma definitiva</strong> sua conta, seu progresso, histórico de revisões, favoritos e os decks que você criou. Não dá para desfazer.</p>
+    ${pago ? `<div class="msg msg-erro">Sua assinatura está com renovação ativa. Cancele a renovação na sua conta da Kiwify antes de excluir; o acesso continua até o fim do período pago.</div>` : ""}
+    <p class="texto-2">Por obrigação legal, guardamos só o registro mínimo de pagamento (e-mail, plano e datas), se houver. Quer uma cópia antes? Use “Baixar meus dados”.</p>
+    <div class="campo"><label for="confirma-exclusao">Para confirmar, digite EXCLUIR</label>
+      <input id="confirma-exclusao" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+    <div class="erro-folha"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn" data-fechar>Cancelar</button>
+      <button class="btn btn-perigo" id="confirmar-exclusao" disabled>Excluir definitivamente</button>
+    </div>`, "Excluir minha conta");
+  const campo = f.$("#confirma-exclusao"), botao = f.$("#confirmar-exclusao");
+  campo.focus();
+  campo.addEventListener("input", () => { botao.disabled = campo.value.trim().toUpperCase() !== "EXCLUIR"; });
+  botao.addEventListener("click", async () => {
+    botao.disabled = true;
+    try {
+      pararVigia();
+      await api.excluirConta(campo.value);
+      sessao = null; cacheDecks = null; assinatura = null;
+      f.fechar(); atualizarFaixa();
+      telaEntrada("login", `<div class="msg msg-ok">Sua conta e seus dados de estudo foram excluídos. Obrigado por ter estudado com a gente.</div>`);
+    } catch (e) { erroNaFolha(f, e); botao.disabled = false; vigiarTela(); }
+  });
 }
 
 /* =====================================================================
