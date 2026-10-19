@@ -1292,6 +1292,15 @@ function atualizarFaixa() {
   }, 30000);
 }
 document.getElementById("faixa-planos").addEventListener("click", () => ir("planos"));
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState !== "visible" || !sessao || !api) return;
+  const antes = JSON.stringify([assinatura?.assinante, assinatura?.plano, assinatura?.acesso]);
+  assinatura = await api.assinatura().catch(() => assinatura);
+  atualizarFaixa();
+  if (JSON.stringify([assinatura?.assinante, assinatura?.plano, assinatura?.acesso]) === antes) return;
+  if (!assinatura?.acesso) telaPlanos({ bloqueado: true });
+  else if (telaAtual === "planos") { toast("Pagamento confirmado. Bom estudo!"); invalidarDecks(); ir("inicio"); }
+});
 
 function telaSemAcesso() { return telaPlanos({ bloqueado: true }); }
 async function sair() { await api.sair(); sessao = null; cacheDecks = null; telaEntrada("login"); }
@@ -2077,7 +2086,7 @@ async function telaPlanos(opcoes = {}) {
   tela.innerHTML = `
   <div class="titulo-pag"><div><h1>${titulo}</h1><p>${sub}</p></div></div>
   ${ehAssinante ? `<section class="caixa plano-atual"><strong>Plano ${esc(nomePlano(assinatura.plano))}</strong>
-    <span class="texto-2">${assinatura.status === "ativa" ? `Próxima cobrança em ${fmtVenc(assinatura.expira_em)}` : `Acesso até ${fmtVenc(assinatura.expira_em)}`}</span></section>` : ""}
+    <span class="texto-2">${assinatura.status === "ativa" && ["mensal", "anual"].includes(assinatura.plano) ? `Próxima cobrança em ${fmtVenc(assinatura.expira_em)}` : `Acesso até ${fmtVenc(assinatura.expira_em)}`}</span></section>` : ""}
   ${!ehAssinante || ehMensal ? `<div class="planos" ${ehMensal ? 'style="grid-template-columns:minmax(0,560px)"' : ""}>${cartaoAnual}${cartaoMensal}</div>` : ""}
   ${ehMensal ? `<section class="caixa convite"><strong>Como migrar</strong>
     <p>1. Assine o anual acima, com o mesmo e-mail (${esc(sessao?.user?.email ?? "")}).<br>2. Depois que o anual for aprovado, cancele a assinatura mensal na sua conta da Kiwify, para não ser cobrado de novo. O acesso segue pelo anual.</p></section>` : ""}
@@ -2124,7 +2133,7 @@ async function telaPerfil() {
       ${assinatura?.assinante ? `
       <div class="linha-info"><span>Situação</span><strong>${st}</strong></div>
       <div class="linha-info"><span>Plano</span><span>${esc(nomePlano(assinatura.plano))}</span></div>
-      <div class="linha-info"><span>${assinatura.status === "ativa" ? "Próxima cobrança" : "Acesso até"}</span><span>${fmtVenc(assinatura.expira_em)}</span></div>
+      <div class="linha-info"><span>${assinatura.status === "ativa" && ["mensal", "anual"].includes(assinatura.plano) ? "Próxima cobrança" : "Acesso até"}</span><span>${fmtVenc(assinatura.expira_em)}</span></div>
       <p class="texto-2">Cobranças, troca de cartão e cancelamento ficam na sua conta da Kiwify.</p>
       ${assinatura.plano === "mensal" ? `<div><button class="btn btn-primario" id="ver-planos">${ico("coroa", "ico-p")} Migrar para o anual e economizar</button></div>` : ""}` : `
       <div class="linha-info"><span>Situação</span><strong>${assinatura?.em_teste ? `Teste grátis (${restanteTeste()} restantes)` : "Sem assinatura"}</strong></div>
