@@ -10,7 +10,8 @@
 //   - Mensal e anual ao mesmo tempo (migração): vale a data mais distante.
 //
 // Tokens dos webhooks: segredo KIWIFY_TOKEN e/ou public.config chave 'kiwify_tokens'
-// (vários separados por vírgula: um por webhook criado na Kiwify).
+// (vários separados por vírgula, um por webhook). Formato "plano:token" (ex.: "mensal:abc,anual:xyz")
+// faz o token definir o plano; sem prefixo, o plano vem do nome/periodicidade do produto.
 // A verificação de JWT fica desativada: a segurança é a assinatura HMAC da Kiwify.
 // =====================================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -67,11 +68,14 @@ function somarPeriodo(plano: string): string {
   return fimDoDia(d.toISOString().slice(0, 10));
 }
 
-async function tokens(): Promise<string[]> {
+async function tokens(): Promise<{ token: string; plano: string | null }[]> {
   const lista = (Deno.env.get("KIWIFY_TOKEN") ?? "").split(",");
   const { data } = await supabase.from("config").select("valor").eq("chave", "kiwify_tokens").maybeSingle();
   if (data?.valor) lista.push(...String(data.valor).split(","));
-  return lista.map((t) => t.trim()).filter(Boolean);
+  return lista.map((t) => t.trim()).filter(Boolean).map((t) => {
+    const m = t.match(/^(mensal|anual):(.+)$/i);
+    return m ? { token: m[2].trim(), plano: m[1].toLowerCase() } : { token: t, plano: null };
+  });
 }
 async function urlDoApp(): Promise<string> {
   if (APP_URL_ENV) return APP_URL_ENV;
@@ -100,8 +104,8 @@ Deno.serve(async (req) => {
   const lista = await tokens();
   if (!lista.length) return resposta(500, { erro: "token da Kiwify não configurado" });
   const assinatura = (new URL(req.url).searchParams.get("signature") ?? "").toLowerCase();
-  let valida = false;
-  for (const t of lista) if (assinatura && igualSeguro(assinatura, await hmacSha1Hex(t, corpo))) valida = true;
+  let valida = false, planoDoToken: string | null = null;
+  for (const t of lista) if (assinatura && igualSeguro(assinatura, await hmacSha1Hex(t.token, corpo))) { valida = true; planoDoToken = t.plano; }
   if (!valida) return resposta(401, { erro: "assinatura inválida" });
 
   let p: any;
@@ -120,7 +124,7 @@ Deno.serve(async (req) => {
   const idPedido = String(campo(p, "order_id", "order_ref") ?? "") || null;
   const proximo = diaBrasilia(campo(assin, "next_payment", "charges_next_payment", "next_charge"));
   const textoPlano = [campo(planoK, "frequency"), campo(planoK, "name"), campo(produto, "product_name", "name")].map((x) => String(x ?? "")).join(" ").toLowerCase();
-  const plano = /year|anual|annual|12 ?mes/.test(textoPlano) ? "anual" : "mensal";
+  const plano = planoDoToken ?? (/year|anual|annual|12 ?mes/.test(textoPlano) ? "anual" : "mensal");
 
   await supabase.from("webhook_log").insert({ evento: evento || statusPedido, email, payload: p });
   if (!email) return resposta(200, { ok: true, ignorado: "sem e-mail do cliente" });
