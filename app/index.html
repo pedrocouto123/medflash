@@ -846,6 +846,9 @@ function criarApiSupabase(sb) {
     copiarCard: (card, deck) => rpc("copiar_card", { p_card: card, p_deck: deck }),
     async cardsDoDeck(id) { return await rpc("cards_do_meu_deck", { p_deck: id }) ?? []; },
     async verCard(id) { return (await rpc("ver_card", { p_card: id }))?.[0] ?? null; },
+    async ehAdmin() { return (await rpc("eh_admin")) === true; },
+    async liberarAcesso(email) { return (await rpc("admin_liberar_acesso", { p_email: email }))?.[0] ?? null; },
+    async acessosLiberados() { return await rpc("admin_listar_liberados") ?? []; },
   };
 }
 
@@ -960,6 +963,9 @@ function criarApiDemo() {
         .slice(0, 60).map((c) => ({ ...c, frente: textoPuro(c.frente).slice(0, 300), verso: null, deck: deckNome(c.deck_id), favorito: favs.has(c.card_id), estado: prog[c.card_id]?.estado ?? null, vencimento: prog[c.card_id]?.vencimento ?? null, intervalo: prog[c.card_id]?.intervalo ?? null }));
     },
     async verCard(id) { const c = cards.find((x) => x.card_id === id); return c ? { card_id: c.card_id, deck: deckNome(c.deck_id), frente: c.frente, verso: c.verso } : null; },
+    async ehAdmin() { return false; },
+    async liberarAcesso() { throw new Error("Indisponível no modo demonstração."); },
+    async acessosLiberados() { return []; },
     async cardDoDia(salto) {
       const semente = Math.floor(Date.now() / DIA) * 31 + salto * 7;
       const c = cards[semente % cards.length];
@@ -2237,7 +2243,10 @@ async function telaPlanos(opcoes = {}) {
    ===================================================================== */
 async function telaPerfil() {
   carregando();
-  assinatura = await api.assinatura().catch(() => assinatura);
+  const [, admin] = await Promise.all([
+    api.assinatura().then((x) => { assinatura = x; }).catch(() => {}),
+    api.ehAdmin().catch(() => false),
+  ]);
   const st = { ativa: "Ativa", cancelada: "Cancelada (acesso até o fim do período pago)", atrasada: "Pagamento em atraso", reembolsada: "Encerrada" }[assinatura?.status] ?? "—";
   const temaSalvo = guardar.ler("pm_tema", "auto");
   tela.innerHTML = `
@@ -2280,6 +2289,19 @@ async function telaPerfil() {
       </div>
       <p class="texto-2"><a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a> · <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a></p>
     </section>
+    ${admin ? `<section class="caixa" id="admin">
+      <h2>Administração</h2>
+      <p class="texto-2">Libere 1 ano de acesso para alguém pelo e-mail. Funciona mesmo antes de a pessoa criar a conta: basta ela se cadastrar com este mesmo e-mail.</p>
+      <form id="form-liberar" class="campo" novalidate>
+        <label for="email-liberar">E-mail da pessoa</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="email-liberar" type="email" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" required style="flex:1;min-width:200px">
+          <button class="btn btn-primario" type="submit">Liberar acesso</button>
+        </div>
+      </form>
+      <h2 style="font-size:15px">Acessos liberados</h2>
+      <div id="lista-liberados"><p class="texto-2">Carregando…</p></div>
+    </section>` : ""}
     <section class="caixa">
       <h2>Senha e acesso</h2>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -2299,6 +2321,38 @@ async function telaPerfil() {
   document.getElementById("trocar-senha").onclick = () => telaEntrada("definir");
   document.getElementById("baixar-dados").onclick = baixarMeusDados;
   document.getElementById("excluir-conta").onclick = excluirMinhaConta;
+  if (admin) iniciarAdmin();
+}
+
+// ---------- Administração: liberar acesso por e-mail ----------
+async function carregarLiberados() {
+  const caixa = document.getElementById("lista-liberados"); if (!caixa) return;
+  try {
+    const lista = await api.acessosLiberados();
+    caixa.innerHTML = lista.length ? lista.map((l) => `
+      <div class="disp"><div><strong>${esc(l.email)}</strong>${l.tem_conta ? "" : ` <span class="selo selo-medio">Sem conta ainda</span>`}
+        <div class="texto-2">${esc(nomePlano(l.plano))} · até ${l.expira_em ? fmtVenc(l.expira_em) : "sem prazo"}${l.liberado_por ? ` · por ${esc(l.liberado_por)}` : ""}</div></div></div>`).join("")
+      : `<p class="texto-2">Ninguém com acesso liberado à mão.</p>`;
+  } catch (e) { caixa.innerHTML = `<p class="texto-2">Não foi possível carregar a lista: ${esc(e.message)}</p>`; }
+}
+function iniciarAdmin() {
+  const form = document.getElementById("form-liberar"); if (!form) return;
+  const campo = document.getElementById("email-liberar");
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const email = campo.value.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast("Digite um e-mail válido."); campo.focus(); return; }
+    const btn = form.querySelector("button"); btn.disabled = true;
+    try {
+      const r = await api.liberarAcesso(email);
+      toast(r?.alterado ? `Acesso liberado para ${email} até ${fmtVenc(r.expira_em)}.`
+        : `${email} já tem acesso até ${r?.expira_em ? fmtVenc(r.expira_em) : "sem prazo"}. Nada foi alterado.`);
+      campo.value = "";
+      carregarLiberados();
+    } catch (e) { toast("Não foi possível liberar: " + e.message); }
+    finally { btn.disabled = false; }
+  });
+  carregarLiberados();
 }
 
 // ---------- LGPD: portabilidade e exclusão ----------

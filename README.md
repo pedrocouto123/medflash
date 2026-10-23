@@ -195,6 +195,8 @@ Opção `--oculto` importa sem mostrar aos alunos (publique depois mudando `publ
 
 ## Dia a dia
 
+**Liberar acesso pelo app:** quem está em `public.administradores` (os sócios) vê a seção **Administração** no Perfil. Lá dá para liberar 1 ano de acesso para um e-mail (mesmo antes de a pessoa criar a conta) e ver a lista de acessos liberados à mão. Para incluir outro administrador: `insert into public.administradores(email) values ('nome@email.com');`. A conta dele precisa ter o e-mail confirmado.
+
 Comandos para o **SQL Editor**:
 
 ```sql
